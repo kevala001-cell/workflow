@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="LICHT">
+<meta name="theme-color" content="#f7f7f5">
+<title>LICHT — 제품 런칭 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --surface2: #f0f0ed;
+    --border: #e0e0da;
+    --accent: #2a7a2a;
+    --accent2: #b07800;
+    --accent3: #0070a8;
+    --text: #1a1a18;
+    --text-muted: #999;
+    --text-dim: #ccc;
+    --danger: #c0392b;
+    --radius: 4px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* NAV */
+  nav {
+    border-bottom: 1px solid var(--border); box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    background: rgba(247,247,245,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+  }
+  .logo span { color: var(--text-muted); font-size: 11px; font-family: 'DM Mono', monospace; letter-spacing: 0.1em; margin-left: 12px; vertical-align: middle; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    padding: 6px 16px;
+    border: none;
+    background: none;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--surface); }
+  .nav-tab.active { color: var(--accent); background: rgba(42,122,42,0.07); }
+
+  /* MAIN */
+  main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    font-weight: 400;
+  }
+  .section-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+  }
+
+  /* ===================== PAGE 1: TIMELINE ===================== */
+  .product-header {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .product-name-input {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--border); box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    color: var(--text);
+    padding: 4px 8px;
+    width: 220px;
+    outline: none;
+  }
+  .product-name-input:focus { border-color: var(--accent); }
+  .date-wrap { display: flex; align-items: center; gap: 10px; }
+  .date-wrap label { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
+  .date-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 6px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .date-input:focus { outline: none; border-color: var(--accent); }
+  .d-badge {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .d-badge strong { font-size: 22px; color: var(--accent); font-family: 'DM Serif Display', serif; }
+
+  /* Timeline grid */
+  .timeline-grid { display: flex; flex-direction: column; gap: 12px; }
+
+  .timeline-category { margin-bottom: 8px; }
+  .cat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border); box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .task-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: start;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .task-row:hover { border-color: #ccc; background: var(--surface2); }
+
+  .task-row.done { opacity: 0.45; }
+  .task-row.done .task-text { text-decoration: line-through; color: var(--text-muted); }
+
+  .checkbox {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.15s;
+  }
+  .task-row.done .checkbox {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .checkbox-check { display: none; width: 10px; height: 10px; }
+  .task-row.done .checkbox-check { display: block; }
+
+  .task-text { font-size: 13px; line-height: 1.5; color: var(--text); }
+  .task-note { font-size: 11px; color: var(--text-muted); margin-top: 3px; font-style: italic; }
+
+  .d-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--surface2);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .d-tag.today { background: rgba(42,122,42,0.10); color: var(--accent); border-color: rgba(42,122,42,0.35); }
+  .d-tag.soon { background: rgba(176,120,0,0.08); color: var(--accent2); border-color: rgba(176,120,0,0.3); }
+  .d-tag.overdue { background: rgba(192,57,43,0.08); color: var(--danger); border-color: rgba(192,57,43,0.25); }
+
+  .progress-bar-wrap { margin-bottom: 24px; }
+  .progress-meta { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .progress-meta span { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
+  .progress-meta strong { color: var(--accent); }
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  /* ===================== PAGE 2: MARGIN ===================== */
+  .margin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .calc-card { box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .calc-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border); box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+  }
+  .field-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; gap: 12px; }
+  .field-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+  .field-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    padding: 6px 10px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    width: 130px;
+    text-align: right;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field-input:focus { border-color: var(--accent); }
+  .field-unit { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); width: 24px; }
+
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  .result-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .result-label { font-size: 12px; color: var(--text-muted); }
+  .result-value { font-family: 'DM Mono', monospace; font-size: 14px; color: var(--text); }
+  .result-row.highlight .result-label { color: var(--text); font-weight: 600; }
+  .result-row.highlight .result-value { color: var(--accent); font-size: 22px; }
+  .result-row.margin-pct .result-value { color: var(--accent2); font-size: 18px; }
+
+  .coupon-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    cursor: pointer;
+  }
+  .toggle-switch {
+    width: 32px; height: 18px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .toggle-switch.on { background: var(--accent); border-color: var(--accent); }
+  .toggle-knob {
+    width: 12px; height: 12px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: left 0.2s, background 0.2s;
+  }
+  .toggle-switch.on .toggle-knob { left: 16px; background: var(--bg); }
+  .toggle-label { font-size: 12px; color: var(--text-muted); }
+
+  .warning-box {
+    background: rgba(176,120,0,0.06);
+    border: 1px solid rgba(176,120,0,0.25);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--accent2);
+    line-height: 1.6;
+  }
+  .warning-box::before { content: '⚠ '; }
+
+  /* ===================== PAGE 3: LOGISTICS ===================== */
+  .checklist-section { margin-bottom: 32px; }
+  .checklist-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .checklist-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .check-item {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 12px;
+    align-items: start;
+    padding: 14px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .check-item:hover { border-color: #ccc; }
+  .check-item.done { opacity: 0.4; }
+  .check-item.done .check-main { text-decoration: line-through; }
+  .check-item .checkbox { margin-top: 2px; }
+  .check-item.done .checkbox { background: var(--accent); border-color: var(--accent); }
+  .check-item.done .checkbox-check { display: block; }
+
+  .check-main { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .check-detail { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .check-tip {
+    font-size: 11px;
+    color: var(--accent3);
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: rgba(0,112,168,0.05);
+    border-left: 2px solid var(--accent3);
+    border-radius: 0 3px 3px 0;
+    line-height: 1.5;
+  }
+
+  /* ===================== PAGE 4: PRODUCTS ===================== */
+  .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .product-card { box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    transition: border-color 0.15s;
+  }
+  .product-card:hover { border-color: #ccc; }
+  .pc-name { font-family: 'DM Serif Display', serif; font-size: 18px; margin-bottom: 4px; }
+  .pc-category { font-size: 11px; color: var(--text-muted); font-family: 'DM Mono', monospace; margin-bottom: 16px; }
+  .pc-metric { display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .pc-metric-label { font-size: 11px; color: var(--text-muted); }
+  .pc-metric-value { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .pc-bar { height: 2px; background: var(--border); border-radius: 1px; margin-top: 12px; }
+  .pc-bar-fill { height: 100%; border-radius: 1px; background: var(--accent); }
+  .pc-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+    padding: 3px 8px;
+    border-radius: 12px;
+    margin-top: 12px;
+  }
+  .pc-status.sourcing { background: rgba(176,120,0,0.08); color: var(--accent2); }
+  .pc-status.logistics { background: rgba(0,112,168,0.08); color: var(--accent3); }
+  .pc-status.selling { background: rgba(42,122,42,0.08); color: var(--accent); }
+  .pc-status::before { content: '●'; font-size: 8px; }
+
+  .add-product-btn {
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    transition: all 0.15s;
+    background: none;
+    width: 100%;
+  }
+  .add-product-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* ===================== SHARED ===================== */
+  .btn {
+    padding: 8px 18px;
+    border-radius: var(--radius);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    transition: all 0.15s;
+    letter-spacing: 0.05em;
+  }
+  .btn:hover { border-color: #555; background: #ebebeb; }
+  .btn.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { background: #b8e040; }
+  .btn.danger { background: rgba(192,57,43,0.08); color: var(--danger); border-color: rgba(192,57,43,0.2); }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .page.active { animation: fadeIn 0.2s ease; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ===================== MOBILE ===================== */
+  @media (max-width: 700px) {
+    /* Nav — 모바일에서 탭 숨기고 하단 바로 대체 */
+    nav { padding: 0 16px; height: 50px; }
+    .logo span { display: none; }
+    .nav-tabs { display: none; }
+
+    /* Bottom tab bar */
+    .bottom-nav {
+      display: flex;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: rgba(247,247,245,0.97);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      z-index: 200;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .bottom-tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition: color 0.15s;
+      padding: 0;
+    }
+    .bottom-tab .tab-icon { font-size: 18px; line-height: 1; }
+    .bottom-tab.active { color: var(--accent); }
+
+    /* main padding — bottom nav 여백 */
+    main { padding: 16px 14px 80px; }
+
+    /* Section header */
+    .section-title { font-size: 22px; }
+
+    /* Product header — 세로 스택 */
+    .product-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 14px;
+      padding: 16px;
+    }
+    .product-name-input { width: 100%; font-size: 18px; }
+    .date-wrap { justify-content: space-between; }
+    .date-input { font-size: 13px; padding: 8px 10px; flex: 1; }
+    .d-badge { margin-left: 0; text-align: center; padding: 10px 0 2px; border-top: 1px solid var(--border); }
+    .d-badge strong { font-size: 28px; }
+
+    /* Task rows — 더 큰 터치 영역 */
+    .task-row {
+      padding: 13px 12px;
+      gap: 10px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .checkbox { width: 22px; height: 22px; border-radius: 4px; }
+    .checkbox-check { width: 12px; height: 12px; }
+    .task-text { font-size: 14px; }
+    .task-note { font-size: 12px; }
+    .d-tag { font-size: 10px; padding: 3px 8px; }
+
+    /* Margin — 1열로 */
+    .margin-grid { grid-template-columns: 1fr; gap: 14px; }
+    .calc-card { box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 18px 16px; }
+    .field-row { flex-wrap: wrap; gap: 8px; }
+    .field-label { font-size: 13px; flex: 1 1 100%; }
+    .field-input { width: 100%; font-size: 16px; padding: 10px 12px; }
+    /* font-size 16px prevents iOS zoom on input focus */
+    .field-unit { display: none; }
+    .result-row.highlight .result-value { font-size: 26px; }
+
+    /* Check items */
+    .check-item { padding: 14px 12px; -webkit-tap-highlight-color: transparent; }
+    .check-main { font-size: 14px; }
+    .check-detail { font-size: 12px; }
+    .check-tip { font-size: 11px; }
+
+    /* Products */
+    .products-grid { grid-template-columns: 1fr; }
+    .product-card { box-shadow: 0 1px 3px rgba(0,0,0,0.06); padding: 16px; }
+    .pc-name { font-size: 16px; }
+    .add-product-btn { padding: 18px; font-size: 13px; }
+
+    /* Progress */
+    .progress-bar { height: 4px; }
+    .progress-meta span { font-size: 12px; }
+  }
+
+  /* iPhone safe area */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .bottom-nav { padding-bottom: env(safe-area-inset-bottom); height: calc(60px + env(safe-area-inset-bottom)); }
+  }
+
+  /* Desktop — bottom nav 숨김 */
+  @media (min-width: 701px) {
+    .bottom-nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">LICHT <span>셀러 운영 시스템</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('timeline')">런칭 타임라인</button>
+    <button class="nav-tab" onclick="showPage('margin')">마진 계산기</button>
+    <button class="nav-tab" onclick="showPage('logistics')">물류 체크리스트</button>
+    <button class="nav-tab" onclick="showPage('products')">제품 관리</button>
+  </div>
+</nav>
+
+<!-- 모바일 하단 탭바 -->
+<div class="bottom-nav">
+  <button class="bottom-tab active" onclick="showPage('timeline', this)">
+    <span class="tab-icon">📋</span>타임라인
+  </button>
+  <button class="bottom-tab" onclick="showPage('margin', this)">
+    <span class="tab-icon">💰</span>마진
+  </button>
+  <button class="bottom-tab" onclick="showPage('logistics', this)">
+    <span class="tab-icon">🚚</span>물류
+  </button>
+  <button class="bottom-tab" onclick="showPage('products', this)">
+    <span class="tab-icon">📦</span>제품
+  </button>
+</div>
+
+<main>
+
+  <!-- ========== PAGE 1: TIMELINE ========== -->
+  <div id="page-timeline" class="page active">
+    <div class="section-header">
+      <div class="section-title">런칭 타임라인</div>
+      <div class="section-sub">D-17 to D-DAY</div>
+    </div>
+
+    <div class="product-header">
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);font-family:'DM Mono',monospace;margin-bottom:6px">제품명</div>
+        <input class="product-name-input" id="productName" placeholder="제품명 입력..." value="명함지갑">
+      </div>
+      <div class="date-wrap">
+        <label>소싱 시작일</label>
+        <input type="date" class="date-input" id="startDate" oninput="updateDates()">
+      </div>
+      <div class="date-wrap">
+        <label>목표 D-Day</label>
+        <input type="date" class="date-input" id="dday" oninput="updateDates()">
+      </div>
+      <div class="d-badge" id="dBadge">
+        <strong id="dNum">—</strong> <span style="font-family:'DM Mono',monospace;font-size:11px">일 남음</span>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-meta">
+        <span>진행률 <strong id="progressPct">0%</strong></span>
+        <span id="progressCount">0 / 0 완료</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="timeline-grid" id="timelineGrid"></div>
+  </div>
+
+  <!-- ========== PAGE 2: MARGIN ========== -->
+  <div id="page-margin" class="page">
+    <div class="section-header">
+      <div class="section-title">마진 계산기</div>
+      <div class="section-sub">쿠팡 셀러 기준</div>
+    </div>
+
+    <div class="margin-grid">
+      <div class="calc-card">
+        <div class="calc-title">입력값</div>
+
+        <div class="field-row">
+          <span class="field-label">제품 원가 (해외배송 포함)</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="field-input" id="m_cost" type="number" value="2700" oninput="calcMargin()">
+            <span class="field-unit">₩</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">그로스 입출고 + 배송비</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="field-input" id="m_logistics" type="number" value="4025" oninput="calcMargin()">
+            <span class="field-unit">₩</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">판매가격</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="field-input" id="m_price" type="number" value="19900" oninput="calcMargin()">
+            <span class="field-unit">₩</span>
+          </div>
+        </div>
+        <div class="field-row">
+          <span class="field-label">마켓 수수료율</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <input class="field-input" id="m_fee_rate" type="number" value="11" step="0.5" oninput="calcMargin()">
+            <span class="field-unit">%</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="coupon-toggle" onclick="toggleCoupon()">
+          <div class="toggle-switch" id="couponToggle"><div class="toggle-knob"></div></div>
+          <span class="toggle-label">쿠폰 적용</span>
+        </div>
+        <div id="couponFields" style="display:none">
+          <div class="field-row">
+            <span class="field-label">할인 쿠폰</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input class="field-input" id="m_coupon" type="number" value="3000" oninput="calcMargin()">
+              <span class="field-unit">₩</span>
+            </div>
+          </div>
+          <div class="field-row">
+            <span class="field-label">실제 표시 판매가</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <input class="field-input" id="m_listed_price" type="number" value="22900" oninput="calcMargin()">
+              <span class="field-unit">₩</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="warning-box">배송비를 물품 단가에 포함하지 말 것 — 관/부가세 과다 청구로 마진 하락 원인</div>
+      </div>
+
+      <div class="calc-card">
+        <div class="calc-title">계산 결과</div>
+
+        <div class="result-row">
+          <span class="result-label">총 원가</span>
+          <span class="result-value" id="r_total_cost">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">마켓 수수료</span>
+          <span class="result-value" id="r_fee">—</span>
+        </div>
+        <div class="divider"></div>
+        <div class="result-row highlight">
+          <span class="result-label">순수익</span>
+          <span class="result-value" id="r_profit">—</span>
+        </div>
+        <div class="result-row margin-pct">
+          <span class="result-label">마진율</span>
+          <span class="result-value" id="r_margin_pct">—</span>
+        </div>
+        <div class="divider"></div>
+        <div class="result-row">
+          <span class="result-label">제로마진 광고비 (부가세 별도)</span>
+          <span class="result-value" id="r_zero_margin_ad">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">제로마진 광고 효율</span>
+          <span class="result-value" id="r_roas">—</span>
+        </div>
+        <div class="divider"></div>
+
+        <div style="margin-top:16px">
+          <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text-muted);letter-spacing:0.08em;margin-bottom:12px">마진 건강도</div>
+          <div id="healthBar" style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px">
+            <div id="healthFill" style="height:100%;border-radius:3px;transition:width 0.4s,background 0.4s"></div>
+          </div>
+          <div id="healthLabel" style="font-size:12px;color:var(--text-muted)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== PAGE 3: LOGISTICS ========== -->
+  <div id="page-logistics" class="page">
+    <div class="section-header">
+      <div class="section-title">물류 체크리스트</div>
+      <div class="section-sub">1688 → 배대지 → 동백 그로스</div>
+    </div>
+
+    <div id="logisticsChecklist"></div>
+  </div>
+
+  <!-- ========== PAGE 4: PRODUCTS ========== -->
+  <div id="page-products" class="page">
+    <div class="section-header">
+      <div class="section-title">제품 관리</div>
+      <div class="section-sub">LICHT 브랜드 포트폴리오</div>
+    </div>
+
+    <div class="products-grid" id="productsGrid">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  tasks: [],
+  logChecks: [],
+  products: [],
+  couponOn: false
+};
+
+// Load from localStorage if available
+try {
+  const saved = localStorage.getItem('licht_state');
+  if (saved) state = { ...state, ...JSON.parse(saved) };
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem('licht_state', JSON.stringify(state)); } catch(e) {}
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(id, clickedEl) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  // 클릭된 버튼 활성화 (상단 또는 하단 탭 모두 처리)
+  if (clickedEl) {
+    clickedEl.classList.add('active');
+    // 반대쪽 탭도 동기화
+    const allTabs = [...document.querySelectorAll('.nav-tab'), ...document.querySelectorAll('.bottom-tab')];
+    allTabs.forEach(t => {
+      if (t.getAttribute('onclick') && t.getAttribute('onclick').includes(`'${id}'`) && t !== clickedEl) {
+        t.classList.add('active');
+      }
+    });
+  } else if (event && event.target) {
+    event.target.classList.add('active');
+  }
+}
+
+// ============================================================
+// TIMELINE DATA
+// ============================================================
+const timelineData = [
+  {
+    category: '물류', color: '#60c8f0',
+    tasks: [
+      { id: 't1', day: -17, text: '1688 소싱단가 네고', note: '샘플 주문 (포장, 파손주의) / 배송비 최적화' },
+      { id: 't2', day: -16, text: '테스트 물량 주문 + 동백 입고 처리', note: '1688 테스트 물량 발주' },
+      { id: 't3', day: -15, text: '송장정보 체크' },
+      { id: 't4', day: -11, text: '배대지 도착 확인' },
+      { id: 't5', day: -8, text: '송장 정보 전달', note: '시스템 입력용 / 바코드 및 박스 부착 정보 전송' },
+      { id: 't6', day: -7, text: '배대지 → 한국 물류비 발생' },
+      { id: 't7', day: -5, text: '사업자 통관 진행' },
+      { id: 't8', day: -2, text: '국내 배송 시작' },
+      { id: 't9', day: 0, text: '그로스 입고 완료 ✓', note: 'D-Day — 판매 시작 가능' },
+    ]
+  },
+  {
+    category: 'A 계정', color: '#2a7a2a',
+    tasks: [
+      { id: 'a1', day: -17, text: '윙 계정 생성' },
+      { id: 'a2', day: -16, text: '판매페이지 생성', note: '등록 후 노출 검색 확인 → 판매 중지 → B 생성 순서' },
+      { id: 'a3', day: -16, text: '팡구매 시작', note: '판매가에 팡구매 / 약 4일 (키워드 잡기)' },
+      { id: 'a4', day: -11, text: '팡구매 완료 확인' },
+    ]
+  },
+  {
+    category: 'B 계정', color: '#b07800',
+    tasks: [
+      { id: 'b1', day: -17, text: '윙 계정 생성' },
+      { id: 'b2', day: -16, text: '판매페이지 생성 + 양채우기 시작', note: '가구매, 댓글업체 연락 / B 판매가 9천원 설정' },
+      { id: 'b3', day: -16, text: '동백 송장 정보 최종 체크', note: '입고 현황 모니터링 / 1688 셀러 박스 개수, 송장번호 확인' },
+      { id: 'b4', day: -11, text: 'B 계정 가격 올리기', note: '149% / 3-4시간 간격 (하루)' },
+      { id: 'b5', day: -10, text: '리뷰 작업 시작', note: '피그몽키 / 80개 = 20개 × 4일 or 8개 × 10일' },
+      { id: 'b6', day: -1, text: '리뷰 완료 확인' },
+    ]
+  },
+  {
+    category: '그로스 계정', color: '#f060c8',
+    tasks: [
+      { id: 'g1', day: -9, text: '그로스 구좌 신청' },
+      { id: 'g2', day: -8, text: 'A/B 계정 아이템 위너 매칭 완료' },
+    ]
+  },
+  {
+    category: '상세페이지', color: '#c860f0',
+    tasks: [
+      { id: 'd1', day: -16, text: '판매 플로우 완성' },
+      { id: 'd2', day: -16, text: '상세페이지 작업 요청', note: '알바 / 내 제품 링크 + 1688 링크 + 레퍼런스 링크' },
+      { id: 'd3', day: -10, text: '상세페이지 작업 완료 확인' },
+    ]
+  },
+  {
+    category: '기타', color: '#888',
+    tasks: [
+      { id: 'e1', day: -17, text: '샘플 준비' },
+      { id: 'e2', day: -16, text: '상세페이지 알바 섭외' },
+      { id: 'e3', day: 0, text: '순위 확인, 트래픽, 광고비 수익률 관리', note: 'Sales 시작 — 키워드 모니터링' },
+    ]
+  },
+];
+
+// ============================================================
+// TIMELINE RENDER
+// ============================================================
+function initTasks() {
+  if (state.tasks.length === 0) {
+    timelineData.forEach(cat => {
+      cat.tasks.forEach(t => {
+        state.tasks.push({ id: t.id, done: false });
+      });
+    });
+  }
+}
+
+function getTaskState(id) {
+  const ts = state.tasks.find(t => t.id === id);
+  return ts ? ts.done : false;
+}
+
+function toggleTask(id) {
+  const ts = state.tasks.find(t => t.id === id);
+  if (ts) ts.done = !ts.done;
+  else state.tasks.push({ id, done: true });
+  save();
+  renderTimeline();
+  updateProgress();
+}
+
+function getDdayNum() {
+  const ddayInput = document.getElementById('dday').value;
+  if (!ddayInput) return null;
+  const today = new Date();
+  const dday = new Date(ddayInput);
+  const diff = Math.round((dday - today) / (1000*60*60*24));
+  return diff;
+}
+
+function getDTag(taskDay) {
+  const ddayRemaining = getDdayNum();
+  if (ddayRemaining === null) return `D${taskDay === 0 ? '' : taskDay}`;
+
+  // What "D" number is today?
+  // taskDay is relative to D-Day. Today = D-(ddayRemaining)
+  const todayD = -ddayRemaining;
+  const diff = taskDay - todayD;
+
+  if (diff === 0) return { label: `D${taskDay === 0 ? '' : taskDay} · 오늘`, cls: 'today' };
+  if (diff > 0 && diff <= 3) return { label: `D${taskDay === 0 ? '' : taskDay} · ${diff}일 후`, cls: 'soon' };
+  if (diff < 0) return { label: `D${taskDay === 0 ? '' : taskDay} · ${Math.abs(diff)}일 지남`, cls: 'overdue' };
+  return { label: `D${taskDay === 0 ? '' : taskDay}`, cls: '' };
+}
+
+function renderTimeline() {
+  const grid = document.getElementById('timelineGrid');
+  grid.innerHTML = '';
+  timelineData.forEach(cat => {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'timeline-category';
+    catDiv.innerHTML = `<div class="cat-label"><span class="cat-dot" style="background:${cat.color}"></span>${cat.category}</div>`;
+    cat.tasks.forEach(t => {
+      const done = getTaskState(t.id);
+      const dtag = getDTag(t.day);
+      const tagLabel = typeof dtag === 'object' ? dtag.label : dtag;
+      const tagCls = typeof dtag === 'object' ? dtag.cls : '';
+      const row = document.createElement('div');
+      row.className = 'task-row' + (done ? ' done' : '');
+      row.onclick = () => toggleTask(t.id);
+      row.innerHTML = `
+        <div class="checkbox">
+          <svg class="checkbox-check" viewBox="0 0 10 10" fill="none">
+            <polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="task-text">${t.text}</div>
+          ${t.note ? `<div class="task-note">${t.note}</div>` : ''}
+        </div>
+        <div class="d-tag ${tagCls}">${tagLabel}</div>
+      `;
+      catDiv.appendChild(row);
+    });
+    grid.appendChild(catDiv);
+  });
+}
+
+function updateProgress() {
+  const total = state.tasks.length;
+  const done = state.tasks.filter(t => t.done).length;
+  const pct = total === 0 ? 0 : Math.round(done / total * 100);
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressCount').textContent = `${done} / ${total} 완료`;
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function updateDates() {
+  save();
+  const remaining = getDdayNum();
+  if (remaining !== null) {
+    document.getElementById('dNum').textContent = remaining >= 0 ? remaining : 'D+' + Math.abs(remaining);
+    document.getElementById('dBadge').querySelector('span').textContent = remaining >= 0 ? '일 남음' : '일 경과';
+  }
+  renderTimeline();
+}
+
+// ============================================================
+// MARGIN CALCULATOR
+// ============================================================
+let couponOn = false;
+
+function toggleCoupon() {
+  couponOn = !couponOn;
+  const toggle = document.getElementById('couponToggle');
+  const fields = document.getElementById('couponFields');
+  toggle.classList.toggle('on', couponOn);
+  fields.style.display = couponOn ? 'block' : 'none';
+  calcMargin();
+}
+
+function fmt(n) { return n.toLocaleString('ko-KR') + '원'; }
+function fmtPct(n) { return (n * 100).toFixed(1) + '%'; }
+
+function calcMargin() {
+  const cost = +document.getElementById('m_cost').value || 0;
+  const logistics = +document.getElementById('m_logistics').value || 0;
+  const price = +document.getElementById('m_price').value || 0;
+  const feeRate = (+document.getElementById('m_fee_rate').value || 0) / 100;
+  const coupon = couponOn ? (+document.getElementById('m_coupon').value || 0) : 0;
+  const listedPrice = couponOn ? (+document.getElementById('m_listed_price').value || price) : price;
+
+  const totalCost = cost + logistics;
+  const fee = Math.round(price * feeRate);
+  const profit = price - totalCost - fee;
+  const marginPct = price > 0 ? profit / listedPrice : 0;
+
+  // zero margin ad budget
+  const zeroMarginAd = profit;
+  const roas = zeroMarginAd > 0 ? listedPrice / zeroMarginAd : 0;
+
+  document.getElementById('r_total_cost').textContent = fmt(totalCost);
+  document.getElementById('r_fee').textContent = fmt(fee) + ` (${(feeRate*100).toFixed(1)}%)`;
+  document.getElementById('r_profit').textContent = fmt(profit);
+  document.getElementById('r_margin_pct').textContent = fmtPct(marginPct);
+  document.getElementById('r_zero_margin_ad').textContent = fmt(Math.round(zeroMarginAd));
+  document.getElementById('r_roas').textContent = roas.toFixed(2) + 'x';
+
+  // Health bar
+  const healthPct = Math.min(100, Math.max(0, marginPct * 100 / 60 * 100));
+  const fill = document.getElementById('healthFill');
+  fill.style.width = healthPct + '%';
+  let color, label;
+  if (marginPct >= 0.45) { color = '#2a7a2a'; label = '✦ 우수 — 높은 마진율'; }
+  else if (marginPct >= 0.3) { color = '#b07800'; label = '◈ 양호 — 광고 여력 있음'; }
+  else if (marginPct >= 0.15) { color = '#c05000'; label = '△ 주의 — 광고비 여력 부족'; }
+  else { color = '#c0392b'; label = '✕ 위험 — 소싱가 재검토 필요'; }
+  fill.style.background = color;
+  document.getElementById('healthLabel').textContent = label;
+  document.getElementById('healthLabel').style.color = color;
+}
+
+// ============================================================
+// LOGISTICS CHECKLIST
+// ============================================================
+const logisticsData = [
+  {
+    section: '현지 발송',
+    items: [
+      {
+        id: 'l1',
+        main: '송장 / 박스 수량 확인',
+        detail: '1688 판매자가 발급한 전체 운송장(Tracking) 개수와 박스 수량을 대조',
+        tip: '분할 배송 시 누락된 송장이 없는지 판매자에게 채팅으로 확답 받기'
+      },
+      {
+        id: 'l2',
+        main: '원산지 표시 (Made in China) 확인',
+        detail: '제품 및 최소 단위 포장에 "Made in China" 각인 또는 스티커 유무 확인',
+        tip: '표시 없으면 배대지에 "원산지 작업" 유료 신청 — 미이행 시 통관 불가 및 보수작업비 발생'
+      },
+    ]
+  },
+  {
+    section: '검수 & 서류',
+    items: [
+      {
+        id: 'l3',
+        main: '현지 실사 확인 (검수)',
+        detail: '배대지에 입고된 사진을 통해 옵션(색상/수량) 및 박스 파손 여부 검수',
+        tip: '한국 도착 후 반품 사실상 불가 — 현지에서 파손 발견 시 즉시 교환 요청'
+      },
+      {
+        id: 'l4',
+        main: '단가 입력 방식 확인 [중요]',
+        detail: '배송비를 제외한 인보이스상의 순수 물품 단가(위안화) 기재',
+        tip: '배송비를 단가에 합쳐 적으면 관/부가세 과다 청구 → 마진 하락 직결'
+      },
+    ]
+  },
+  {
+    section: '통관',
+    items: [
+      {
+        id: 'l5',
+        main: '사업자 통관 고유부호로 신청',
+        detail: '개인 통관 번호가 아닌 "사업자 통관 고유부호"로 신청서 작성',
+        tip: '사업자 통관으로 진행해야 부가세 매입 세액 공제로 세금 환급 가능'
+      },
+      {
+        id: 'l6',
+        main: '입항 후 세금 자진 조회',
+        detail: '은행 앱(공과금 > 관세) 또는 유니패스에서 세금 발생 여부 조회 및 즉시 납부',
+        tip: '납부 안내 문자 누락 케이스 다수 — 입항 후 매일 직접 조회 필수'
+      },
+      {
+        id: 'l7',
+        main: '통관 3일 이상 지연 시 관세사 직접 소통',
+        detail: '배대지 답변 대기 말고 담당 관세 법인에 유선 문의',
+        tip: '"사업자 통관 서류 보완이 필요한가요?" 라고 직접 물어보는 것이 가장 빠름'
+      },
+    ]
+  },
+];
+
+function getLogState(id) {
+  const ls = state.logChecks.find(l => l.id === id);
+  return ls ? ls.done : false;
+}
+
+function toggleLog(id) {
+  const ls = state.logChecks.find(l => l.id === id);
+  if (ls) ls.done = !ls.done;
+  else state.logChecks.push({ id, done: true });
+  save();
+  renderLogistics();
+}
+
+function renderLogistics() {
+  const container = document.getElementById('logisticsChecklist');
+  container.innerHTML = '';
+  logisticsData.forEach(section => {
+    const secDiv = document.createElement('div');
+    secDiv.className = 'checklist-section';
+    secDiv.innerHTML = `<div class="checklist-title">${section.section}</div>`;
+    section.items.forEach(item => {
+      const done = getLogState(item.id);
+      const el = document.createElement('div');
+      el.className = 'check-item' + (done ? ' done' : '');
+      el.onclick = () => toggleLog(item.id);
+      el.innerHTML = `
+        <div class="checkbox">
+          <svg class="checkbox-check" viewBox="0 0 10 10" fill="none">
+            <polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="check-main">${item.main}</div>
+          <div class="check-detail">${item.detail}</div>
+          <div class="check-tip">${item.tip}</div>
+        </div>
+      `;
+      secDiv.appendChild(el);
+    });
+    container.appendChild(secDiv);
+  });
+}
+
+// ============================================================
+// PRODUCTS
+// ============================================================
+const defaultProducts = [
+  { id: 'p1', name: '명함지갑', brand: 'OREA', category: '감성 리빙 / 패션 잡화', price: 19900, cost: 2700, logistics: 4025, reviews: 0, targetReviews: 80, status: 'sourcing' },
+  { id: 'p2', name: '드라이기 거치대', brand: 'LUNA', category: '욕실 / 생활 잡화', price: 23990, cost: 3708, logistics: 4025, reviews: 0, targetReviews: 80, status: 'sourcing' },
+];
+
+function renderProducts() {
+  const products = state.products.length > 0 ? state.products : defaultProducts;
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = '';
+
+  products.forEach(p => {
+    const profit = p.price - p.cost - p.logistics - Math.round(p.price * 0.11);
+    const marginPct = (profit / p.price * 100).toFixed(1);
+    const reviewPct = Math.min(100, Math.round(p.reviews / p.targetReviews * 100));
+    const statusLabels = { sourcing: '소싱 진행중', logistics: '물류 처리중', selling: '판매중' };
+
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.innerHTML = `
+      <div class="pc-name">${p.name}</div>
+      <div class="pc-category">${p.brand} — ${p.category}</div>
+      <div class="pc-metric"><span class="pc-metric-label">판매가</span><span class="pc-metric-value">${p.price.toLocaleString()}원</span></div>
+      <div class="pc-metric"><span class="pc-metric-label">예상 순이익</span><span class="pc-metric-value" style="color:var(--accent)">${profit.toLocaleString()}원</span></div>
+      <div class="pc-metric"><span class="pc-metric-label">마진율</span><span class="pc-metric-value">${marginPct}%</span></div>
+      <div class="pc-metric"><span class="pc-metric-label">리뷰</span><span class="pc-metric-value">${p.reviews} / ${p.targetReviews}개</span></div>
+      <div class="pc-bar"><div class="pc-bar-fill" style="width:${reviewPct}%"></div></div>
+      <div><span class="pc-status ${p.status}">${statusLabels[p.status] || p.status}</span></div>
+    `;
+    grid.appendChild(card);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-product-btn';
+  addBtn.textContent = '+ 제품 추가';
+  addBtn.onclick = () => alert('제품 추가 기능 — 추후 확장 예정');
+  grid.appendChild(addBtn);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function init() {
+  initTasks();
+  renderTimeline();
+  updateProgress();
+  calcMargin();
+  renderLogistics();
+  renderProducts();
+
+  // Set default dates
+  const today = new Date();
+  const dday = new Date();
+  dday.setDate(today.getDate() + 17);
+  document.getElementById('startDate').value = today.toISOString().split('T')[0];
+  document.getElementById('dday').value = dday.toISOString().split('T')[0];
+  updateDates();
+}
+
+init();
+</script>
+</body>
+</html>
