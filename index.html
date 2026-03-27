@@ -3,349 +3,561 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Seller Pro Manager OS</title>
+<title>Seller Pro — 통합 운영 관리</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+:root{
+  --bg:#f3f4f6;--surface:#fff;--surface2:#f9fafb;--surface3:#e5e7eb;
+  --border:#e5e7eb;--border2:#d1d5db;
+  --text:#111827;--text2:#4b5563;--text3:#6b7280;
+  --accent:#2563eb;--accent-h:#1d4ed8;--accent-light:#eff6ff;
+  --green:#059669;--green-light:#d1fae5;
+  --red:#dc2626;--red-light:#fee2e2;
+  --yellow:#d97706;--yellow-light:#fef3c7;
+  --purple:#7c3aed;--purple-light:#ede9fe;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-size:14px;letter-spacing:-0.3px}
 
-  :root {
-    --bg: #f3f4f6;
-    --surface: #ffffff;
-    --surface2: #f9fafb;
-    --surface3: #e5e7eb;
-    --border: #e5e7eb;
-    --border2: #d1d5db;
-    --text: #111827;
-    --text2: #4b5563;
-    --text3: #6b7280;
-    --accent: #2563eb; 
-    --accent-hover: #1d4ed8;
-    --accent-light: #eff6ff;
-    --green: #059669;
-    --red: #dc2626;
-    --yellow: #d97706;
-  }
+.app-shell{display:grid;grid-template-columns:240px 1fr;grid-template-rows:60px 1fr;height:100vh}
+.topbar{grid-column:1/-1;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:12px;z-index:200;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.topbar-logo{font-family:'JetBrains Mono',monospace;font-weight:900;font-size:17px;color:var(--accent);letter-spacing:1px}
+.topbar-ver{font-size:11px;background:var(--accent-light);color:var(--accent);padding:2px 7px;border-radius:4px;font-weight:700}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center}
 
-  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  body { font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; font-size: 14px; letter-spacing: -0.3px; }
+.sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.sidebar-section{font-size:11px;font-weight:700;color:var(--text3);padding:20px 20px 8px;text-transform:uppercase;letter-spacing:.8px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 20px;font-size:13px;color:var(--text2);cursor:pointer;border-left:3px solid transparent;transition:all .15s;font-weight:500}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{color:var(--accent);background:var(--accent-light);border-left-color:var(--accent);font-weight:700}
+.product-nav-item{padding:9px 20px 9px 32px;font-size:12px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:8px;border-left:3px solid transparent;transition:all .15s}
+.product-nav-item:hover{background:var(--surface2);color:var(--text)}
+.product-nav-item.active{color:var(--accent);background:var(--accent-light);border-left-color:var(--accent);font-weight:700}
+.status-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.dot-registered{background:var(--text3)}.dot-advertising{background:var(--accent)}.dot-paused{background:var(--red)}
 
-  /* ── LAYOUT & SIDEBAR ── */
-  .app-shell { display: grid; grid-template-columns: 240px 1fr; grid-template-rows: 64px 1fr; height: 100vh; }
-  .topbar { grid-column: 1/-1; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 100; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-  .topbar-logo { font-family: 'JetBrains Mono', monospace; font-weight: 900; font-size: 18px; color: var(--accent); letter-spacing: 1px; }
-  .topbar-title { font-size: 14px; color: var(--text3); font-weight: 500; }
-  .topbar-right { margin-left:auto; display:flex; gap:12px; }
+.bottom-nav{display:none;height:64px;background:var(--surface);border-top:1px solid var(--border);position:fixed;bottom:0;width:100%;z-index:200}
+.bottom-nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text3);font-size:10px;gap:3px;cursor:pointer;transition:color .15s}
+.bottom-nav-btn.active{color:var(--accent);font-weight:700}
+.bottom-nav-btn .icon{font-size:19px}
 
-  .sidebar { background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; display: flex; flex-direction: column; }
-  .sidebar-section { font-size: 12px; font-weight: 700; color: var(--text3); padding: 24px 20px 8px; text-transform: uppercase; }
-  .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; font-size: 14px; color: var(--text2); cursor: pointer; border-left: 3px solid transparent; transition: all 0.2s; font-weight: 500; }
-  .nav-item:hover { background: var(--surface2); color: var(--text); }
-  .nav-item.active { color: var(--accent); background: var(--accent-light); border-left-color: var(--accent); font-weight: 700; }
-  .product-nav-item { padding: 10px 20px 10px 32px; font-size: 13px; color: var(--text2); cursor: pointer; display: flex; align-items: center; gap: 8px; border-left: 3px solid transparent; transition: all 0.2s; }
-  .product-nav-item:hover { background: var(--surface2); color: var(--text); }
-  .product-nav-item.active { color: var(--accent); background: var(--accent-light); border-left-color: var(--accent); font-weight: 700; }
-  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .dot-registered { background: var(--text3); } .dot-advertising { background: var(--accent); } .dot-paused { background: var(--red); }
+.main{overflow-y:auto;background:var(--bg)}
+.page{display:none;padding:32px 36px}
+.page.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.page-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-title{font-size:22px;font-weight:700}
+.page-subtitle{font-size:13px;color:var(--text3);margin-bottom:4px}
 
-  /* ── BOTTOM NAV (Mobile) ── */
-  .bottom-nav { display: none; height: 68px; background: var(--surface); border-top: 1px solid var(--border); position: fixed; bottom: 0; width: 100%; z-index: 100; box-shadow: 0 -1px 3px rgba(0,0,0,0.05); }
-  .bottom-nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text3); font-size: 11px; gap: 4px; cursor: pointer; transition: color 0.2s; }
-  .bottom-nav-btn.active { color: var(--accent); font-weight: 700; }
-  .bottom-nav-btn .icon { font-size: 20px; }
+.card{background:var(--surface);border:1px solid var(--border);padding:22px;margin-bottom:18px;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.card-title{font-size:15px;font-weight:700;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:22px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);padding:18px;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.02)}
+.kpi-label{font-size:11px;color:var(--text3);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+.kpi-value{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:4px}
 
-  /* ── MAIN CONTENT ── */
-  .main { overflow-y: auto; background: var(--bg); position: relative; }
-  .page { display: none; padding: 32px 40px; }
-  .page.active { display: block; animation: fadeIn 0.3s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-  .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 16px; }
-  .page-title { font-size: 24px; font-weight: 700; color: var(--text); }
-  .page-subtitle { font-size: 13px; color: var(--text3); margin-bottom: 4px; }
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+.data-table{width:100%;border-collapse:collapse;font-size:13px;background:var(--surface)}
+.data-table th,.data-table td{padding:12px 14px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;vertical-align:middle}
+.data-table th{color:var(--text3);font-size:11px;font-weight:700;background:var(--surface2);text-transform:uppercase;letter-spacing:.4px}
+.data-table td.num{font-family:'JetBrains Mono',monospace;text-align:right;font-size:13px}
+.data-table tbody tr:hover td{background:var(--surface2)}
+.data-table tbody tr{cursor:pointer}
 
-  /* ── CARDS & GRIDS ── */
-  .card { background: var(--surface); border: 1px solid var(--border); padding: 24px; margin-bottom: 20px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-  .card-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
-  .kpi-card { background: var(--surface); border: 1px solid var(--border); padding: 20px; border-radius: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-  .kpi-label { font-size: 12px; color: var(--text3); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; }
-  .kpi-value { font-size: 24px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text); }
+.btn{padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;border:none;border-radius:6px;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-h)}
+.btn-secondary{background:var(--surface);color:var(--text2);border:1px solid var(--border2)}.btn-secondary:hover{background:var(--surface2)}
+.btn-danger{background:var(--red-light);color:var(--red);border:1px solid #fca5a5}
+.btn-green{background:var(--green-light);color:var(--green);border:1px solid #6ee7b7}
+.btn-sm{padding:7px 11px;font-size:12px}
+.btn-xs{padding:4px 8px;font-size:11px;border-radius:4px}
 
-  /* ── TABLES & FORMS ── */
-  .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
-  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--surface); }
-  .data-table th, .data-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; vertical-align: middle; }
-  .data-table th { color: var(--text3); font-size: 12px; font-weight: 600; background: var(--surface2); }
-  .data-table td.num { font-family: 'JetBrains Mono', monospace; text-align: right; font-weight: 500; }
-  .data-table tbody tr:hover td { background: var(--surface2); }
-  .btn { padding: 10px 16px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; border-radius: 6px; transition: all 0.2s ease; display: inline-flex; justify-content: center; align-items: center; gap: 6px; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { background: var(--accent-hover); }
-  .btn-secondary { background: var(--surface); color: var(--text2); border: 1px solid var(--border2); }
-  .btn-secondary:hover { background: var(--surface2); color: var(--text); }
-  .btn-danger { background: #fee2e2; color: var(--red); border: 1px solid #fca5a5; }
-  .btn-sm { padding: 8px 12px; font-size: 12px; }
-  .form-group { margin-bottom: 16px; }
-  .form-label { display: block; font-size: 12px; font-weight: 700; color: var(--text3); margin-bottom: 8px; }
-  .form-input, .form-select { width: 100%; background: var(--surface); border: 1px solid var(--border2); color: var(--text); padding: 12px; font-size: 14px; border-radius: 6px; outline: none; transition: all 0.2s; }
-  .form-input:focus, .form-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:7px}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:11px 12px;font-size:13px;border-radius:6px;outline:none;transition:all .15s;font-family:'Noto Sans KR',sans-serif}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-light)}
+.form-textarea{resize:vertical;min-height:80px}
+.form-hint{font-size:11px;color:var(--text3);margin-top:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
 
-  /* ── BADGES & CHECKLISTS ── */
-  .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
-  .badge-gray { background: var(--surface3); color: var(--text2); }
-  .badge-blue { background: #dbeafe; color: #1e40af; }
-  .badge-green { background: #d1fae5; color: #065f46; }
-  .badge-red { background: #fee2e2; color: #991b1b; }
-  .badge-yellow { background: #fef3c7; color: #92400e; }
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700}
+.badge-gray{background:var(--surface3);color:var(--text2)}
+.badge-blue{background:#dbeafe;color:#1e40af}
+.badge-green{background:var(--green-light);color:#065f46}
+.badge-red{background:var(--red-light);color:#991b1b}
+.badge-yellow{background:var(--yellow-light);color:#92400e}
+.badge-purple{background:var(--purple-light);color:#5b21b6}
 
-  .checklist { display: flex; flex-direction: column; gap: 8px; }
-  .check-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text); transition: all 0.2s; }
-  .check-item:hover { background: var(--surface2); }
-  .check-item.checked { color: var(--text3); background: var(--surface2); text-decoration: line-through; }
-  .check-item.disabled { opacity: 0.4; pointer-events: none; } /* 아직 도달하지 않은 단계의 체크리스트 */
-  .check-box { width: 20px; height: 20px; border: 1px solid var(--border2); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; background: var(--surface); transition: all 0.2s; }
-  .check-item.checked .check-box { background: var(--accent); border-color: var(--accent); color: #fff; }
+/* 탭 */
+.tab-bar{display:flex;border-bottom:2px solid var(--border);margin-bottom:22px;gap:0}
+.tab-btn{padding:10px 18px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;font-family:'Noto Sans KR',sans-serif}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-pane{display:none}.tab-pane.active{display:block}
 
-  /* ── TIMELINE PROGRESS ── */
-  .step-progress { display: flex; justify-content: space-between; position: relative; margin: 10px 0 20px 0; padding: 0 10px; }
-  .step-progress::before { content:''; position:absolute; top:14px; left:30px; right:30px; height:3px; background:var(--border); z-index:0; }
-  .step-item { position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:8px; width:70px; }
-  .step-dot { width:30px; height:30px; border-radius:50%; background:var(--surface); border:3px solid var(--border2); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:bold; color:var(--text3); transition:all 0.3s; }
-  .step-item.done .step-dot { background:var(--accent); border-color:var(--accent); color:#fff; }
-  .step-item.active .step-dot { border-color:var(--accent); color:var(--accent); box-shadow: 0 0 0 4px var(--accent-light); }
-  .step-label { font-size:11px; color:var(--text3); text-align:center; font-weight:600; white-space:nowrap; }
-  .step-item.done .step-label { color:var(--text); }
-  .step-item.active .step-label { color:var(--accent); }
+/* 월 네비 */
+.month-nav{display:flex;align-items:center;gap:10px}
+.month-nav-btn{background:var(--surface2);border:1px solid var(--border2);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s}
+.month-nav-btn:hover{background:var(--surface3)}
+.month-display{font-size:15px;font-weight:700;min-width:90px;text-align:center;font-family:'JetBrains Mono',monospace}
 
-  /* ── MODALS ── */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-  .modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
-  .modal { background: var(--surface); padding: 24px; width: 500px; max-width: 92vw; border-radius: 12px; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 24px; color: var(--text); }
+/* 광고 입력 그리드 */
+.ad-grid{display:grid;font-size:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.ad-grid-head,.ad-grid-row{display:contents}
+.ad-cell{padding:9px 10px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);background:var(--surface)}
+.ad-cell.head{background:var(--surface2);font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
+.ad-cell.day-label{font-weight:600;color:var(--text);background:var(--surface2)}
+.ad-cell input{width:100%;border:none;background:transparent;font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--text);outline:none;text-align:right;padding:1px 0}
+.ad-cell input:focus{background:var(--accent-light);border-radius:3px}
+.ad-cell.weekend{background:#fff8f8}
+.ad-cell.profit-pos{color:var(--green);font-family:'JetBrains Mono',monospace;text-align:right;font-weight:600}
+.ad-cell.profit-neg{color:var(--red);font-family:'JetBrains Mono',monospace;text-align:right;font-weight:600}
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 768px) {
-    .app-shell { grid-template-columns: 1fr; grid-template-rows: 60px 1fr; }
-    .sidebar { display: none; }
-    .bottom-nav { display: flex; }
-    .main { padding-bottom: 80px; } 
-    .page { padding: 20px 16px; }
-    .form-input, .form-select { font-size: 16px !important; }
-    .two-col { grid-template-columns: 1fr; gap: 16px; }
-    .btn-row { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-    .btn-row .btn { width: 100%; }
-    .kpi-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-    .card { padding: 16px; }
-  }
-  @media (min-width: 769px) { .btn-row { display: flex; gap: 8px; align-items: center; } }
+/* 손익계산 결과 */
+.result-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.result-row .label{color:var(--text2)}
+.result-row .val{font-family:'JetBrains Mono',monospace;font-weight:600}
+.result-row.total .label{font-weight:700;color:var(--text)}
+.result-row.total .val{font-size:15px}
+
+/* 물류 타임라인 */
+.step-progress{display:flex;justify-content:space-between;position:relative;margin:12px 0 20px;padding:0 15px}
+.step-progress::before{content:'';position:absolute;top:14px;left:35px;right:35px;height:3px;background:var(--border);z-index:0}
+.step-item{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:7px}
+.step-dot{width:30px;height:30px;border-radius:50%;background:var(--surface);border:3px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text3);transition:all .3s}
+.step-item.done .step-dot{background:var(--accent);border-color:var(--accent);color:#fff}
+.step-item.active .step-dot{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--accent-light)}
+.step-label{font-size:10px;color:var(--text3);text-align:center;font-weight:600;white-space:nowrap}
+.step-item.done .step-label{color:var(--text)}
+.step-item.active .step-label{color:var(--accent)}
+
+/* 체크리스트 */
+.check-item{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--surface);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:13px;transition:all .15s;margin-bottom:6px}
+.check-item:hover{background:var(--surface2)}
+.check-item.checked{color:var(--text3);background:var(--surface2);text-decoration:line-through}
+.check-item.disabled{opacity:.35;pointer-events:none}
+.check-box{width:20px;height:20px;border:2px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;background:var(--surface);transition:all .15s;flex-shrink:0}
+.check-item.checked .check-box{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* 알림 카드 */
+.alert-item{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:6px;margin-bottom:8px;font-size:13px}
+.alert-item.warn{background:var(--yellow-light);border:1px solid #fde68a}
+.alert-item.danger{background:var(--red-light);border:1px solid #fca5a5}
+.alert-item.info{background:var(--accent-light);border:1px solid #bfdbfe}
+.alert-item.success{background:var(--green-light);border:1px solid #6ee7b7}
+
+/* 차트 바 */
+.bar-chart-wrap{display:flex;align-items:flex-end;gap:4px;height:120px;padding:0 4px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height .3s}
+.bar-label{font-size:9px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+
+/* CSV 드롭존 */
+.csv-drop{border:2px dashed var(--border2);border-radius:8px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;color:var(--text3);font-size:13px}
+.csv-drop:hover,.csv-drop.over{border-color:var(--accent);color:var(--accent);background:var(--accent-light)}
+
+/* 소싱 카드 */
+.sourcing-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:14px}
+.sourcing-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08);border-color:var(--border2)}
+.sourcing-card-img{width:72px;height:72px;border-radius:6px;object-fit:cover;background:var(--surface2);flex-shrink:0;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px}
+.sourcing-site-badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;background:#fff3e0;color:#e65100;margin-bottom:4px}
+
+/* 모달 */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+.modal{background:var(--surface);padding:26px;width:520px;max-width:94vw;border-radius:12px;max-height:92vh;overflow-y:auto;box-shadow:0 10px 30px rgba(0,0,0,.12)}
+.modal-lg{width:680px}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:22px}
+
+/* 반응형 */
+@media(max-width:768px){
+  .app-shell{grid-template-columns:1fr;grid-template-rows:60px 1fr}
+  .sidebar{display:none}
+  .bottom-nav{display:flex}
+  .main{padding-bottom:72px}
+  .page{padding:16px 14px}
+  .form-input,.form-select{font-size:16px!important}
+  .two-col,.three-col{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .card{padding:16px}
+  .ad-grid{font-size:11px}
+}
+@media(min-width:769px){.btn-row{display:flex;gap:8px;align-items:center}}
 </style>
 </head>
 <body>
 
 <div class="app-shell">
-  <header class="topbar">
-    <div class="topbar-logo">SELLER PRO</div>
-    <div style="width:1px; height:20px; background:var(--border); margin:0 4px;"></div>
-    <div class="topbar-title">통합 운영 관리자</div>
-    <div class="topbar-right">
-      <button class="btn btn-primary btn-sm" onclick="exportExcel()">⬇ 엑셀 백업</button>
-      <button class="btn btn-secondary btn-sm" onclick="openProductModal()">+ 새 제품</button>
+<header class="topbar">
+  <div class="topbar-logo">SELLER PRO</div>
+  <span class="topbar-ver">v3</span>
+  <div style="width:1px;height:20px;background:var(--border)"></div>
+  <span style="font-size:13px;color:var(--text3);font-weight:500">통합 운영 관리자</span>
+  <div class="topbar-right">
+    <span id="exrate-badge" class="badge badge-gray">환율 연동중...</span>
+    <button class="btn btn-secondary btn-sm" onclick="exportExcel()">⬇ 엑셀 백업</button>
+    <button class="btn btn-primary btn-sm" onclick="openProductModal()">+ 새 제품</button>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <div class="sidebar-section">메인 프로세스</div>
+  <div class="nav-item active" onclick="navigate('dashboard')">📊 운영 대시보드</div>
+  <div class="nav-item" onclick="navigate('products')">📦 제품 · 광고 관리</div>
+  <div class="nav-item" onclick="navigate('sourcing')">🔍 소싱 탐색기</div>
+  <div class="nav-item" onclick="navigate('margin')">🧮 마진 계산기</div>
+  <div class="nav-item" onclick="navigate('logistics')">🚢 물류 · 통관 트래킹</div>
+  <div class="sidebar-section">내 운영 제품</div>
+  <div id="sidebar-products"></div>
+</nav>
+
+<main class="main">
+
+<!-- ══════════════════════════ 대시보드 ══════════════════════════ -->
+<div class="page active" id="page-dashboard">
+  <div class="page-header">
+    <div>
+      <div class="page-title">운영 대시보드</div>
+      <div class="page-subtitle">전체 포트폴리오 실시간 손익 현황</div>
     </div>
-  </header>
+    <div class="month-nav">
+      <button class="month-nav-btn" onclick="changeMonth('dash',-1)">◀</button>
+      <div class="month-display" id="dash-month-display">-</div>
+      <button class="month-nav-btn" onclick="changeMonth('dash',1)">▶</button>
+    </div>
+  </div>
 
-  <nav class="sidebar">
-    <div class="sidebar-section">메인 프로세스</div>
-    <div class="nav-item active" onclick="navigate('dashboard')">📊 운영 대시보드</div>
-    <div class="nav-item" onclick="navigate('products')">📦 제품 통합 관리</div>
-    <div class="nav-item" onclick="navigate('sourcing')">🔍 소싱 탐색기</div>
-    <div class="nav-item" onclick="navigate('margin')">🧮 정밀 마진 계산</div>
-    <div class="nav-item" onclick="navigate('logistics')">🚢 물류 · 통관 트래킹</div>
-    <div class="sidebar-section">내 운영 제품</div>
-    <div id="sidebar-products"></div>
-  </nav>
+  <div class="kpi-grid" id="dash-kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">총 매출</div><div class="kpi-value" id="kpi-rev">-</div><div class="kpi-sub" id="kpi-rev-sub"></div></div>
+    <div class="kpi-card"><div class="kpi-label">총 광고비</div><div class="kpi-value" style="color:var(--red)" id="kpi-ad">-</div><div class="kpi-sub" id="kpi-ad-sub"></div></div>
+    <div class="kpi-card"><div class="kpi-label">총 순이익</div><div class="kpi-value" id="kpi-profit">-</div><div class="kpi-sub" id="kpi-margin-sub"></div></div>
+    <div class="kpi-card"><div class="kpi-label">평균 ROAS</div><div class="kpi-value" style="color:var(--accent)" id="kpi-roas">-</div><div class="kpi-sub" id="kpi-roas-sub"></div></div>
+    <div class="kpi-card"><div class="kpi-label">운영 제품수</div><div class="kpi-value" id="kpi-prod-cnt">-</div><div class="kpi-sub">광고 집행 중</div></div>
+  </div>
 
-  <main class="main">
-    
-    <div class="page active" id="page-dashboard">
-      <div class="page-header">
-        <div>
-          <div class="page-title">운영 대시보드</div>
-          <div class="page-subtitle">전체 포트폴리오의 실시간 손익 및 운영 현황</div>
-        </div>
+  <!-- 일별 손익 차트 -->
+  <div class="card">
+    <div class="card-title">
+      일별 손익 흐름
+      <div style="display:flex;gap:8px;align-items:center">
+        <select class="form-select" style="width:160px;padding:5px 10px;font-size:12px" id="dash-prod-filter" onchange="renderDashboard()">
+          <option value="all">전체 통합</option>
+        </select>
       </div>
+    </div>
+    <div id="daily-bar-chart" style="margin-bottom:8px"></div>
+    <div style="display:flex;gap:16px;font-size:11px;color:var(--text3)">
+      <span>🟦 매출</span><span>🟥 광고비</span><span>🟩 순이익</span>
+    </div>
+  </div>
 
-      <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-label">이번 달 총 매출</div><div class="kpi-value" id="kpi-rev">-</div></div>
-        <div class="kpi-card"><div class="kpi-label">총 광고비</div><div class="kpi-value" style="color:var(--red)" id="kpi-ad">-</div></div>
-        <div class="kpi-card"><div class="kpi-label">총 순이익</div><div class="kpi-value" style="color:var(--green)" id="kpi-profit">-</div></div>
-        <div class="kpi-card"><div class="kpi-label">평균 ROAS</div><div class="kpi-value" style="color:var(--accent)" id="kpi-roas">-</div></div>
+  <div class="two-col">
+    <!-- 제품별 손익 테이블 -->
+    <div class="card">
+      <div class="card-title">제품별 이번달 손익</div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>제품명</th><th>상태</th><th class="num">매출</th><th class="num">순이익</th><th class="num">ROAS</th></tr></thead>
+          <tbody id="dash-prod-tbody"></tbody>
+        </table>
       </div>
+    </div>
 
-      <div class="two-col">
-        <div class="card">
-          <div class="card-title">주요 운영 제품 현황</div>
-          <div class="table-wrap">
-            <table class="data-table">
-              <thead><tr><th>제품명</th><th>상태</th><th class="num">순이익</th><th class="num">ROAS</th></tr></thead>
-              <tbody id="dash-product-tbody"></tbody>
-            </table>
+    <!-- 알림 -->
+    <div class="card">
+      <div class="card-title">🚨 운영 알림</div>
+      <div id="dash-alerts"></div>
+    </div>
+  </div>
+
+  <!-- 물류 현황 요약 -->
+  <div class="card">
+    <div class="card-title">🚢 물류 진행 현황</div>
+    <div id="dash-logistics-summary"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ 제품 · 광고 관리 ══════════════════════════ -->
+<div class="page" id="page-products">
+  <div class="page-header">
+    <div><div class="page-title">제품 · 광고 관리</div><div class="page-subtitle">제품별 광고 데이터 직접 입력 및 일별 손익 분석</div></div>
+    <button class="btn btn-primary" onclick="openProductModal()">+ 새 제품 추가</button>
+  </div>
+
+  <!-- 제품 선택 카드 목록 -->
+  <div id="product-card-list"></div>
+
+  <!-- 선택된 제품 상세 -->
+  <div id="product-detail-panel" style="display:none">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <button class="btn btn-secondary btn-sm" onclick="deselectProduct()">← 목록으로</button>
+      <div style="font-size:18px;font-weight:700" id="detail-prod-name"></div>
+      <span class="badge" id="detail-prod-status-badge"></span>
+      <button class="btn btn-secondary btn-sm" style="margin-left:auto" onclick="openProductModal(state.curProdId)">수정</button>
+    </div>
+
+    <!-- 제품 KPI -->
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">이번달 매출</div><div class="kpi-value" id="pd-kpi-rev">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">광고비</div><div class="kpi-value" style="color:var(--red)" id="pd-kpi-ad">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">순이익</div><div class="kpi-value" id="pd-kpi-profit">-</div></div>
+      <div class="kpi-card"><div class="kpi-label">ROAS</div><div class="kpi-value" style="color:var(--accent)" id="pd-kpi-roas">-</div></div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(this,'tab-ad-input')">광고 데이터 입력</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-settlement')">일별 손익 계산서</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-csv-upload')">CSV 일괄 업로드</button>
+    </div>
+
+    <!-- 광고 데이터 직접 입력 -->
+    <div class="tab-pane active" id="tab-ad-input">
+      <div class="card">
+        <div class="card-title">
+          월별 광고 데이터 입력
+          <div class="month-nav">
+            <button class="month-nav-btn" onclick="changeMonth('pd',-1)">◀</button>
+            <div class="month-display" id="pd-month-display" style="font-size:13px;min-width:80px">-</div>
+            <button class="month-nav-btn" onclick="changeMonth('pd',1)">▶</button>
           </div>
         </div>
-        
-        <div class="card">
-          <div class="card-title">🚨 주요 운영 알림</div>
-          <div id="dash-alerts"></div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:12px">셀을 직접 클릭하여 입력/수정 → 자동 저장됩니다</div>
+        <div id="ad-input-grid" style="overflow-x:auto"></div>
+        <div style="margin-top:14px;display:flex;gap:10px;align-items:center">
+          <button class="btn btn-primary btn-sm" onclick="saveAdGridAll()">💾 저장</button>
+          <span style="font-size:12px;color:var(--text3)" id="ad-save-status"></span>
         </div>
-      </div>
-
-      <div class="card" style="margin-top:24px;">
-        <div class="card-title" style="margin-bottom:24px;">🚢 실시간 물류 진행 현황</div>
-        <div id="dash-logistics-timeline" style="max-height: 350px; overflow-y: auto; padding-right:10px;"></div>
       </div>
     </div>
 
-    <div class="page" id="page-products">
-      <div class="page-header">
-        <div>
-          <div class="page-title">제품 통합 관리</div>
-          <div class="page-subtitle">등록된 모든 제품의 원가, 마진율 및 상태 관리</div>
-        </div>
-        <button class="btn btn-primary" onclick="openProductModal()">+ 새 제품 추가</button>
-      </div>
-      <div class="card" style="padding:0; overflow:hidden;">
-        <div class="table-wrap" style="border:none; border-radius:0;">
-          <table class="data-table">
+    <!-- 일별 손익 계산서 -->
+    <div class="tab-pane" id="tab-settlement">
+      <div class="card">
+        <div class="card-title">일별 손익 계산서 <span id="settlement-month-label" style="font-size:13px;font-weight:400;color:var(--text3)"></span></div>
+        <div class="table-wrap">
+          <table class="data-table" id="settlement-table">
             <thead>
-              <tr><th>제품명</th><th>운영 상태</th><th class="num">원가(원)</th><th class="num">판매가(원)</th><th class="num">마진율</th><th>관리</th></tr>
+              <tr>
+                <th>날짜</th><th class="num">판매금액</th><th class="num">판매수량</th><th class="num">원가합계</th>
+                <th class="num">쿠팡수수료</th><th class="num">광고비</th><th class="num">순이익</th><th class="num">누적순이익</th>
+              </tr>
             </thead>
-            <tbody id="products-table-body"></tbody>
+            <tbody id="settlement-tbody"></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <div class="page" id="page-sourcing">
-      <div class="page-header">
-        <div><div class="page-title">소싱 탐색기</div></div>
-      </div>
-      <div class="card" style="display:flex; gap:12px; align-items:center;">
-        <input type="text" id="url-input" class="form-input" placeholder="1688 / 타오바오 상품 URL 입력" style="margin-bottom:0;">
-        <button class="btn btn-primary" onclick="simulateScrape()">가져오기</button>
-      </div>
-      <div id="sourcing-list-container"></div>
-    </div>
-
-    <div class="page" id="page-margin">
-      <div class="page-header">
-        <div><div class="page-title">정밀 마진 계산기</div></div>
-        <div class="badge badge-gray" id="exchange-rate-display">환율 연동 중...</div>
-      </div>
-      <div class="two-col">
-        <div>
-          <div class="card">
-            <div class="card-title">💱 매입 및 관세 설정</div>
-            <div class="two-col" style="margin-bottom:16px;">
-              <div class="form-group"><label class="form-label">통화 선택</label><select class="form-select" id="m-currency" onchange="applyExchangeRateUI()"><option value="CNY">위안화 (CNY)</option><option value="USD">달러 (USD)</option></select></div>
-              <div class="form-group"><label class="form-label">적용 환율 (원)</label><input type="number" class="form-input" id="m-rate" oninput="calcMargin()"></div>
-            </div>
-            <div class="two-col" style="margin-bottom:16px;">
-              <div class="form-group"><label class="form-label">매입 단가</label><input type="number" class="form-input" id="m-purchase" oninput="calcMargin()"></div>
-              <div class="form-group"><label class="form-label">관세율 (%)</label><input type="number" class="form-input" id="m-customs" value="8" oninput="calcMargin()"></div>
-            </div>
-            <div class="two-col">
-              <div class="form-group"><label class="form-label">해외 배송비 (원)</label><input type="number" class="form-input" id="m-shipping" value="3000" oninput="calcMargin()"></div>
-              <div class="form-group"><label class="form-label">국내 배송비 (원)</label><input type="number" class="form-input" id="m-domestic" value="2500" oninput="calcMargin()"></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-title">🛒 판매 예측 정보</div>
-            <div class="two-col">
-              <div class="form-group"><label class="form-label">예상 판매가 (원)</label><input type="number" class="form-input" id="m-price" oninput="calcMargin()"></div>
-              <div class="form-group"><label class="form-label">수수료율 (%)</label><input type="number" class="form-input" id="m-fee" value="10.8" oninput="calcMargin()"></div>
-            </div>
-          </div>
+    <!-- CSV 업로드 -->
+    <div class="tab-pane" id="tab-csv-upload">
+      <div class="card">
+        <div class="card-title">쿠팡윙 광고 리포트 자동 파싱</div>
+        <div class="csv-drop" id="csv-drop-zone"
+          ondragover="event.preventDefault();this.classList.add('over')"
+          ondragleave="this.classList.remove('over')"
+          ondrop="handleCsvDrop(event)"
+          onclick="document.getElementById('csv-file-input').click()">
+          <div style="font-size:32px;margin-bottom:8px">📋</div>
+          <div style="font-weight:600;margin-bottom:4px">쿠팡윙 광고 리포트 파일 드래그 or 클릭</div>
+          <div style="font-size:12px;color:var(--text3)">xlsx 또는 csv 파일 · DATA 시트 자동 인식</div>
         </div>
-        <div>
-          <div class="card" style="position:sticky; top:20px;">
-            <div class="card-title">📊 분석 및 시뮬레이터</div>
-            <div class="result-box" id="margin-result"></div>
-            <div style="margin-top:24px; padding-top:20px; border-top:1px dashed var(--border2);">
-              <div style="font-size:12px; font-weight:700; color:var(--text2); margin-bottom:12px;">🎯 ROAS 시뮬레이터</div>
-              <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px;">
-                <span>목표 ROAS 설정</span><span id="roas-val" style="color:var(--accent); font-weight:700;">300%</span>
-              </div>
-              <input type="range" min="100" max="1000" step="50" value="300" id="roas-slider" oninput="updateRoas(this.value)">
-              <div id="roas-result" style="margin-top:12px; font-size:13px; color:var(--text); background:var(--surface2); padding:12px; border-radius:6px;">판매가를 입력해주세요.</div>
-            </div>
-            <button class="btn btn-primary" style="width:100%; margin-top:20px; padding:14px;" onclick="saveToProduct()">이 스펙으로 제품 추가</button>
-          </div>
-        </div>
+        <input type="file" id="csv-file-input" accept=".xlsx,.csv" style="display:none" onchange="handleCsvFile(this)">
+        <div id="csv-parse-result" style="margin-top:16px"></div>
       </div>
     </div>
-
-    <div class="page" id="page-logistics">
-      <div class="page-header">
-        <div>
-          <div class="page-title">물류 · 통관 트래킹</div>
-          <div class="page-subtitle">수입 화물별 진척도 및 단계별 체크리스트</div>
-        </div>
-        <button class="btn btn-primary" onclick="openLogisticsModal()">+ 배송 화물 추가</button>
-      </div>
-
-      <div id="logistics-cards-container"></div>
-    </div>
-
-  </main>
-
-  <nav class="bottom-nav">
-    <div class="bottom-nav-btn active" onclick="navigate('dashboard')"><span class="icon">📊</span><span>대시보드</span></div>
-    <div class="bottom-nav-btn" onclick="navigate('products')"><span class="icon">📦</span><span>제품</span></div>
-    <div class="bottom-nav-btn" onclick="navigate('margin')"><span class="icon">🧮</span><span>계산기</span></div>
-    <div class="bottom-nav-btn" onclick="navigate('logistics')"><span class="icon">🚢</span><span>물류</span></div>
-  </nav>
+  </div>
 </div>
 
+<!-- ══════════════════════════ 소싱 탐색기 ══════════════════════════ -->
+<div class="page" id="page-sourcing">
+  <div class="page-header">
+    <div><div class="page-title">소싱 탐색기</div><div class="page-subtitle">소싱 후보 관리 및 수익성 사전 검토</div></div>
+    <button class="btn btn-primary" onclick="openAddSourcingModal()">+ 소싱 후보 추가</button>
+  </div>
+
+  <!-- 참고 사이트 빠른 접근 -->
+  <div class="card">
+    <div class="card-title">참고 사이트 바로가기</div>
+    <div style="display:flex;flex-wrap:wrap;gap:10px">
+      <button class="btn btn-secondary btn-sm" onclick="window.open('https://www.1688.com','_blank')">🇨🇳 1688.com</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.open('https://www.taobao.com','_blank')">🛍️ 타오바오</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.open('https://www.pinduoduo.com','_blank')">🛒 핀둬둬</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.open('https://wing.coupang.com','_blank')">🚀 쿠팡 윙</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.open('https://unipass.customs.go.kr','_blank')">📦 유니패스(관세)</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.open('https://www.naver.com','_blank')">📊 네이버 쇼핑</button>
+    </div>
+  </div>
+
+  <!-- 소싱 후보 목록 -->
+  <div class="card">
+    <div class="card-title">
+      소싱 후보 목록
+      <div style="display:flex;gap:8px">
+        <select class="form-select" style="width:120px;padding:5px 10px;font-size:12px" id="sourcing-filter" onchange="renderSourcing()">
+          <option value="all">전체</option>
+          <option value="검토중">검토중</option>
+          <option value="소싱확정">소싱확정</option>
+          <option value="보류">보류</option>
+        </select>
+      </div>
+    </div>
+    <div id="sourcing-list-container"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ 마진 계산기 ══════════════════════════ -->
+<div class="page" id="page-margin">
+  <div class="page-header">
+    <div><div class="page-title">정밀 마진 계산기</div><div class="page-subtitle">수입원가 → 수익성 시뮬레이션</div></div>
+    <span class="badge badge-gray" id="exchange-rate-display">환율 연동중...</span>
+  </div>
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title">💱 매입 · 관세 정보</div>
+        <div class="two-col" style="margin-bottom:14px">
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">통화</label><select class="form-select" id="m-currency" onchange="applyExchangeRateUI()"><option value="CNY">위안화 (¥)</option><option value="USD">달러 ($)</option><option value="KRW">원화 (₩)</option></select></div>
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">적용 환율</label><input type="number" class="form-input" id="m-rate" oninput="calcMargin()"></div>
+        </div>
+        <div class="two-col" style="margin-bottom:14px">
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">매입 단가</label><input type="number" class="form-input" id="m-purchase" placeholder="0" oninput="calcMargin()"></div>
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">관세율 (%)</label><input type="number" class="form-input" id="m-customs" value="8" oninput="calcMargin()"></div>
+        </div>
+        <div class="two-col">
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">해외배송비 (원)</label><input type="number" class="form-input" id="m-shipping" value="3000" oninput="calcMargin()"></div>
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">국내배송비 (원)</label><input type="number" class="form-input" id="m-domestic" value="2500" oninput="calcMargin()"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">🛒 판매 설정</div>
+        <div class="two-col" style="margin-bottom:14px">
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">판매가 (원)</label><input type="number" class="form-input" id="m-price" placeholder="0" oninput="calcMargin()"></div>
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">쿠팡 수수료율 (%)</label><input type="number" class="form-input" id="m-fee" value="10.8" oninput="calcMargin()"></div>
+        </div>
+        <div class="two-col">
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">초기 사입수량 (개)</label><input type="number" class="form-input" id="m-qty" placeholder="100" oninput="calcMargin()"></div>
+          <div class="form-group" style="margin-bottom:0"><label class="form-label">가리뷰 수량 (개)</label><input type="number" class="form-input" id="m-review" value="0" oninput="calcMargin()"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card" style="position:sticky;top:16px">
+        <div class="card-title">📊 원가 분석 결과</div>
+        <div id="margin-result"><div style="text-align:center;padding:24px;color:var(--text3)">값을 입력하세요.</div></div>
+
+        <div style="margin-top:20px;padding-top:18px;border-top:1px dashed var(--border2)">
+          <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px">🎯 ROAS 시뮬레이터</div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
+            <span>목표 ROAS</span><span id="roas-val" style="color:var(--accent);font-weight:700">300%</span>
+          </div>
+          <input type="range" min="100" max="1000" step="50" value="300" id="roas-slider" oninput="updateRoas(this.value)" style="width:100%">
+          <div id="roas-result" style="margin-top:10px;font-size:13px;background:var(--surface2);padding:12px;border-radius:6px;line-height:1.6"></div>
+        </div>
+
+        <!-- 손익분기 요약 -->
+        <div id="bep-summary" style="margin-top:16px;padding:14px;background:var(--accent-light);border-radius:6px;border:1px solid #bfdbfe;font-size:13px;display:none">
+          <div style="font-weight:700;color:var(--accent);margin-bottom:8px">📈 사업성 요약</div>
+          <div id="bep-content"></div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:13px" onclick="saveCalcToProduct()">이 스펙으로 제품 등록</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ 물류 트래킹 ══════════════════════════ -->
+<div class="page" id="page-logistics">
+  <div class="page-header">
+    <div><div class="page-title">물류 · 통관 트래킹</div><div class="page-subtitle">수입 화물별 진척도 및 단계별 체크리스트</div></div>
+    <button class="btn btn-primary" onclick="openLogisticsModal()">+ 화물 추가</button>
+  </div>
+  <div id="logistics-cards-container"></div>
+</div>
+
+</main>
+
+<!-- 모바일 하단 네비 -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-btn active" onclick="navigate('dashboard')"><span class="icon">📊</span><span>대시보드</span></div>
+  <div class="bottom-nav-btn" onclick="navigate('products')"><span class="icon">📦</span><span>제품</span></div>
+  <div class="bottom-nav-btn" onclick="navigate('margin')"><span class="icon">🧮</span><span>계산기</span></div>
+  <div class="bottom-nav-btn" onclick="navigate('logistics')"><span class="icon">🚢</span><span>물류</span></div>
+</nav>
+</div>
+
+<!-- ══════════ MODALS ══════════ -->
+<!-- 제품 등록/수정 -->
 <div class="modal-overlay" id="modal-product">
   <div class="modal">
-    <div class="modal-title" id="mp-title">제품 등록</div>
-    <div class="form-group"><label class="form-label">제품명</label><input class="form-input" id="mp-name"></div>
+    <div class="modal-title" id="mp-title">새 제품 등록</div>
+    <div class="form-group"><label class="form-label">제품명</label><input class="form-input" id="mp-name" placeholder="예: 온웨이브 발열조끼"></div>
+    <div class="form-group"><label class="form-label">쿠팡 상품 URL</label><input class="form-input" id="mp-url" placeholder="https://www.coupang.com/vp/products/..."></div>
     <div class="two-col">
-      <div class="form-group"><label class="form-label">최종 원가 (원)</label><input class="form-input" type="number" id="mp-cost"></div>
-      <div class="form-group"><label class="form-label">판매가 (원)</label><input class="form-input" type="number" id="mp-price"></div>
+      <div class="form-group"><label class="form-label">최종 원가 (원)</label><input class="form-input" type="number" id="mp-cost" placeholder="30000"></div>
+      <div class="form-group"><label class="form-label">판매가 (원)</label><input class="form-input" type="number" id="mp-price" placeholder="89800"></div>
+      <div class="form-group"><label class="form-label">쿠팡 수수료율 (%)</label><input class="form-input" type="number" id="mp-commission" value="10.8"></div>
+      <div class="form-group"><label class="form-label">초기 사입수량</label><input class="form-input" type="number" id="mp-qty" placeholder="100"></div>
     </div>
-    <div class="form-group">
-      <label class="form-label">운영 상태</label>
+    <div class="form-group"><label class="form-label">운영 상태</label>
       <select class="form-select" id="mp-status">
-        <option value="registered">대기 및 입고</option>
-        <option value="advertising">광고 및 정상 판매</option>
+        <option value="registered">대기 · 입고중</option>
+        <option value="advertising">광고 · 판매중</option>
         <option value="paused">일시 중단</option>
       </select>
     </div>
-    <div class="btn-row" style="margin-top:24px; justify-content:flex-end;">
+    <div class="form-group"><label class="form-label">메모</label><textarea class="form-textarea" id="mp-memo" placeholder="소싱 경로, 특이사항 등"></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
       <button class="btn btn-secondary" onclick="closeModal('modal-product')">취소</button>
-      <button class="btn btn-danger" id="btn-del-prod" style="display:none;" onclick="deleteProduct()">삭제</button>
+      <button class="btn btn-danger btn-sm" id="btn-del-prod" style="display:none" onclick="deleteProduct()">삭제</button>
       <button class="btn btn-primary" onclick="saveProduct()">저장</button>
     </div>
   </div>
 </div>
 
+<!-- 소싱 후보 추가 -->
+<div class="modal-overlay" id="modal-sourcing">
+  <div class="modal">
+    <div class="modal-title">소싱 후보 추가</div>
+    <div class="form-group"><label class="form-label">제품/아이템명</label><input class="form-input" id="s-name" placeholder="1688 상품명 또는 키워드"></div>
+    <div class="form-group"><label class="form-label">소싱 URL</label><input class="form-input" id="s-url" placeholder="https://..."></div>
+    <div class="two-col">
+      <div class="form-group"><label class="form-label">단가 (원화 환산)</label><input class="form-input" type="number" id="s-price" placeholder="15000"></div>
+      <div class="form-group"><label class="form-label">예상 판매가 (원)</label><input class="form-input" type="number" id="s-sell" placeholder="49800"></div>
+    </div>
+    <div class="form-group"><label class="form-label">검토 상태</label>
+      <select class="form-select" id="s-status">
+        <option value="검토중">검토중</option><option value="소싱확정">소싱확정</option><option value="보류">보류</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">메모</label><textarea class="form-textarea" id="s-memo" placeholder="MOQ, 납기, 품질 등 특이사항"></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-secondary" onclick="closeModal('modal-sourcing')">취소</button>
+      <button class="btn btn-primary" onclick="saveSourcing()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 물류 등록 -->
 <div class="modal-overlay" id="modal-logistics">
   <div class="modal">
     <div class="modal-title">수입 화물 등록</div>
-    <div class="form-group">
-      <label class="form-label">연결할 운영 제품명</label>
-      <select class="form-select" id="l-product"></select>
-    </div>
-    <div class="form-group"><label class="form-label">BL 또는 운송장 번호</label><input class="form-input" id="l-bl" placeholder="번호 입력"></div>
+    <div class="form-group"><label class="form-label">연결 제품</label><select class="form-select" id="l-product"></select></div>
+    <div class="form-group"><label class="form-label">BL / 운송장 번호</label><input class="form-input" id="l-bl" placeholder="번호 입력"></div>
+    <div class="form-group"><label class="form-label">수입 비용 (원)</label><input class="form-input" type="number" id="l-cost" placeholder="0"></div>
     <div class="two-col">
       <div class="form-group"><label class="form-label">현재 물류 상태</label>
         <select class="form-select" id="l-status">
-          <option value="입항전">1. 입항전</option><option value="입항">2. 입항 (통관대기)</option><option value="수입신고">3. 수입신고</option><option value="반출완료">4. 반출완료</option>
+          <option value="입항전">1. 입항전</option><option value="입항">2. 입항(통관대기)</option>
+          <option value="수입신고">3. 수입신고</option><option value="반출완료">4. 반출완료</option>
         </select>
       </div>
       <div class="form-group"><label class="form-label">해당 상태 돌입일</label><input class="form-input" type="date" id="l-date"></div>
     </div>
-    <div class="btn-row" style="margin-top:24px; justify-content:flex-end;">
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
       <button class="btn btn-secondary" onclick="closeModal('modal-logistics')">취소</button>
       <button class="btn btn-primary" onclick="saveLogistics()">저장</button>
     </div>
@@ -353,286 +565,662 @@
 </div>
 
 <script>
-// ==========================================
-// STATE MANAGEMENT
-// ==========================================
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+const STORE_KEY = 'sellerpro_v3';
 let state = {
   products: [], sourcingList: [], adData: {}, logistics: [],
-  curProdId: null, editProdId: null, pendingSourceId: null,
+  curProdId: null, editProdId: null,
   dashDate: new Date(), pdDate: new Date()
 };
 
-let exchangeRates = { USD: 1350, CNY: 190 };
-const LOGISTICS_STAGES = ['입항전', '입항', '수입신고', '반출완료'];
+let exchangeRates = { USD:1350, CNY:190 };
 
-// 물류 단계별 체크리스트 매핑 (어떤 단계일 때 어떤 항목이 활성화되는지)
+const LOGISTICS_STAGES = ['입항전','입항','수입신고','반출완료'];
 const LOGISTICS_CHECKS = [
-  { key: 'chk1', label: 'Made in China 각인/스티커 부착 확인 (출항 전)', stageIdx: 0 },
-  { key: 'chk2', label: '인보이스 내 물품 단가 분리 기재', stageIdx: 0 },
-  { key: 'chk3', label: '사업자 통관 고유부호 입력', stageIdx: 1 },
-  { key: 'chk4', label: '유니패스 관세 납부 완료', stageIdx: 2 },
-  { key: 'chk5', label: '국내 물류창고 입고 예약 확정', stageIdx: 3 }
+  {key:'chk1', label:'Made in China 각인/스티커 부착 확인', stageIdx:0},
+  {key:'chk2', label:'인보이스 물품 단가 분리 기재 확인', stageIdx:0},
+  {key:'chk3', label:'사업자 통관 고유부호 입력 완료', stageIdx:1},
+  {key:'chk4', label:'유니패스 관세 납부 완료', stageIdx:2},
+  {key:'chk5', label:'국내 물류창고 입고 예약 확정', stageIdx:3},
 ];
 
 function loadState() {
   try {
-    const s = localStorage.getItem('sellerpro_v7');
-    if(s) {
-      Object.assign(state, JSON.parse(s));
-      state.dashDate = new Date(); state.pdDate = new Date();
-      // 기존 데이터 호환을 위해 checks 객체 초기화
-      state.logistics.forEach(l => { if(!l.checks) l.checks = {}; });
+    const s = localStorage.getItem(STORE_KEY);
+    if (s) {
+      const parsed = JSON.parse(s);
+      Object.assign(state, parsed);
+      state.dashDate = new Date();
+      state.pdDate = new Date();
+      state.logistics.forEach(l => { if (!l.checks) l.checks = {}; });
     }
   } catch(e) {}
 }
-function saveState() { localStorage.setItem('sellerpro_v7', JSON.stringify(state)); }
+function saveState() {
+  const toSave = {
+    products: state.products, sourcingList: state.sourcingList,
+    adData: state.adData, logistics: state.logistics
+  };
+  localStorage.setItem(STORE_KEY, JSON.stringify(toSave));
+}
 loadState();
 
-// ==========================================
-// 환율 자동 연동 (API Fetch)
-// ==========================================
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+const fmt = n => n === 0 ? '₩0' : `₩${Math.round(n).toLocaleString()}`;
+const fmtShort = n => {
+  const abs = Math.abs(n);
+  if (abs >= 1e8) return (n < 0 ? '-' : '') + (abs/1e8).toFixed(1) + '억';
+  if (abs >= 1e4) return (n < 0 ? '-' : '') + Math.round(abs/1e4) + '만';
+  return fmt(n);
+};
+const getMonthKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+const getDaysInMonth = d => new Date(d.getFullYear(), d.getMonth()+1, 0).getDate();
+const weekdayKR = ['일','월','화','수','목','금','토'];
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function switchTab(btn, paneId) {
+  btn.closest('.tab-bar').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const container = btn.closest('.tab-bar').parentElement;
+  container.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  const pane = document.getElementById(paneId);
+  if (pane) pane.classList.add('active');
+  if (paneId === 'tab-settlement') renderSettlement();
+}
+
+function changeMonth(ctx, dir) {
+  if (ctx === 'dash') {
+    state.dashDate = new Date(state.dashDate.getFullYear(), state.dashDate.getMonth() + dir, 1);
+    renderDashboard();
+  } else {
+    state.pdDate = new Date(state.pdDate.getFullYear(), state.pdDate.getMonth() + dir, 1);
+    renderProductDetail();
+  }
+}
+
+// ══════════════════════════════════════════════
+// 환율 연동
+// ══════════════════════════════════════════════
 async function fetchRealExchangeRates() {
-  const displayEl = document.getElementById('exchange-rate-display');
+  const badge = document.getElementById('exrate-badge');
+  const dispEl = document.getElementById('exchange-rate-display');
   try {
     const res = await fetch('https://open.er-api.com/v6/latest/USD');
-    if(res.ok) {
+    if (res.ok) {
       const data = await res.json();
       exchangeRates.USD = Math.round(data.rates.KRW);
       exchangeRates.CNY = Math.round(data.rates.KRW / data.rates.CNY);
-      if(displayEl) { displayEl.textContent = `환율 자동 연동됨 (API)`; displayEl.className = 'badge badge-green'; }
+      if (badge) { badge.textContent = `USD ₩${exchangeRates.USD} · CNY ₩${exchangeRates.CNY}`; badge.className = 'badge badge-green'; }
+      if (dispEl) { dispEl.textContent = `환율 자동 연동됨 · CNY ₩${exchangeRates.CNY}`; dispEl.className = 'badge badge-green'; }
     }
   } catch(e) {
-    if(displayEl) { displayEl.textContent = `오프라인 환율 적용`; displayEl.className = 'badge badge-yellow'; }
+    if (badge) { badge.textContent = `오프라인 환율 (CNY ₩${exchangeRates.CNY})`; badge.className = 'badge badge-yellow'; }
+    if (dispEl) { dispEl.textContent = `오프라인 환율 적용`; dispEl.className = 'badge badge-yellow'; }
   }
   applyExchangeRateUI();
 }
 
-function applyExchangeRateUI() {
-  const cur = document.getElementById('m-currency')?.value || 'CNY';
-  const rateInput = document.getElementById('m-rate');
-  if(rateInput) rateInput.value = exchangeRates[cur] || 190;
-  calcMargin();
-}
-
-// ==========================================
-// NAVIGATION & UTILS
-// ==========================================
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
 function navigate(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-'+page)?.classList.add('active');
-  
-  document.querySelectorAll('.nav-item, .bottom-nav-btn').forEach(btn => {
-    btn.classList.remove('active');
-    if(btn.getAttribute('onclick')?.includes(`'${page}'`)) btn.classList.add('active');
+  document.querySelectorAll('.nav-item, .bottom-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page)?.classList.add('active');
+  document.querySelectorAll('.nav-item, .bottom-nav-btn').forEach(b => {
+    if (b.getAttribute('onclick')?.includes(`'${page}'`)) b.classList.add('active');
+  });
+  if (page === 'dashboard') renderDashboard();
+  if (page === 'products') renderProductList();
+  if (page === 'sourcing') renderSourcing();
+  if (page === 'logistics') renderLogistics();
+}
+
+// ══════════════════════════════════════════════
+// SIDEBAR
+// ══════════════════════════════════════════════
+function renderSidebar() {
+  const el = document.getElementById('sidebar-products');
+  if (!el) return;
+  el.innerHTML = state.products.length === 0
+    ? '<div style="padding:8px 20px 8px 32px;font-size:12px;color:var(--text3)">등록된 제품 없음</div>'
+    : state.products.map(p => `
+      <div class="product-nav-item ${p.id === state.curProdId ? 'active' : ''}" onclick="selectProductFromSidebar('${p.id}')">
+        <div class="status-dot dot-${p.status}"></div>
+        <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</span>
+      </div>
+    `).join('');
+}
+function selectProductFromSidebar(id) {
+  navigate('products');
+  state.curProdId = id;
+  renderProductList();
+  selectProduct(id);
+}
+
+// ══════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════
+function renderDashboard() {
+  const m = state.dashDate;
+  document.getElementById('dash-month-display').textContent = getMonthKey(m);
+  const mk = getMonthKey(m);
+  const days = getDaysInMonth(m);
+
+  // 전체 집계
+  let totRev = 0, totAd = 0, totCogs = 0, totComm = 0;
+  const prodRows = [];
+
+  state.products.forEach(p => {
+    const pData = state.adData[p.id] || {};
+    let pRev = 0, pAd = 0, pUnits = 0;
+    for (let d = 1; d <= days; d++) {
+      const dk = `${mk}-${String(d).padStart(2,'0')}`;
+      const dd = pData[dk] || {};
+      pRev += dd.revenue || 0;
+      pAd += dd.adCost || 0;
+      pUnits += dd.units || 0;
+    }
+    const pCogs = pUnits * p.cost;
+    const pComm = pRev * ((p.commission || 10.8) / 100);
+    const pProfit = pRev - pAd - pCogs - pComm;
+    totRev += pRev; totAd += pAd; totCogs += pCogs; totComm += pComm;
+    prodRows.push({ p, pRev, pAd, pProfit });
   });
 
-  if(page === 'dashboard') { renderSidebar(); renderDashboard(); }
-  if(page === 'products') renderProductsPage();
-  if(page === 'sourcing') renderSourcing();
-  if(page === 'logistics') renderLogistics();
-}
+  const totProfit = totRev - totAd - totCogs - totComm;
+  const roas = totAd > 0 ? (totRev / totAd * 100).toFixed(0) + '%' : '-';
+  const margin = totRev > 0 ? (totProfit / totRev * 100).toFixed(1) + '%' : '-';
+  const adCnt = state.products.filter(p => p.status === 'advertising').length;
 
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function getMonthKey(dObj) { return `${dObj.getFullYear()}-${String(dObj.getMonth()+1).padStart(2,'0')}`; }
+  const kpiRev = document.getElementById('kpi-rev');
+  kpiRev.textContent = fmtShort(totRev);
+  kpiRev.style.color = '';
+  document.getElementById('kpi-rev-sub').textContent = totRev > 0 ? fmt(totRev) : '데이터 없음';
+  document.getElementById('kpi-ad').textContent = fmtShort(totAd);
+  document.getElementById('kpi-ad-sub').textContent = totRev > 0 ? `매출 대비 ${(totAd/totRev*100).toFixed(1)}%` : '';
+  const profitEl = document.getElementById('kpi-profit');
+  profitEl.textContent = fmtShort(totProfit);
+  profitEl.style.color = totProfit >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('kpi-margin-sub').textContent = totRev > 0 ? `마진율 ${margin}` : '';
+  document.getElementById('kpi-roas').textContent = roas;
+  document.getElementById('kpi-roas-sub').textContent = totAd > 0 ? `BEP 기준 확인 필요` : '';
+  document.getElementById('kpi-prod-cnt').textContent = adCnt;
 
-// ==========================================
-// 1. DASHBOARD & PRODUCTS
-// ==========================================
-function renderSidebar() {
-  document.getElementById('sidebar-products').innerHTML = state.products.map(p => `
-    <div class="product-nav-item" onclick="alert('제품 상세/광고 입력은 [제품 통합 관리] 탭에서 기능 준비중입니다.')">
-      <div class="status-dot dot-${p.status}"></div><span style="overflow:hidden; text-overflow:ellipsis;">${p.name}</span>
-    </div>
-  `).join('');
-}
+  // 일별 바 차트
+  const filterSel = document.getElementById('dash-prod-filter');
+  renderDailyBarChart(mk, days, filterSel?.value || 'all');
 
-function renderDashboard() {
-  document.getElementById('dash-month-display').textContent = `${state.dashDate.getFullYear()}.${String(state.dashDate.getMonth()+1).padStart(2,'0')}`;
-  
-  // (KPI와 요약 리스트 로직은 앞선 답변과 동일하므로 UI 렌더링만 진행)
-  document.getElementById('kpi-rev').textContent = '₩0';
-  document.getElementById('kpi-ad').textContent = '₩0';
-  document.getElementById('kpi-profit').textContent = '₩0';
-  document.getElementById('kpi-roas').textContent = '-';
-  document.getElementById('dash-product-tbody').innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px; color:var(--text3);">운영 중인 제품이 없습니다.</td></tr>`;
-
-  // 대시보드 내 물류 타임라인 렌더링
-  const dashTL = document.getElementById('dash-logistics-timeline');
-  if(!state.logistics.length) {
-    dashTL.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text3);">진행 중인 물류 건이 없습니다.</div>`;
+  // 제품 요약 테이블
+  const tbody = document.getElementById('dash-prod-tbody');
+  if (!prodRows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text3)">등록된 제품이 없습니다</td></tr>';
   } else {
-    dashTL.innerHTML = state.logistics.map(l => {
+    const statusLabel = {registered:'대기',advertising:'광고중',paused:'중단'};
+    const statusBadge = {registered:'badge-gray',advertising:'badge-blue',paused:'badge-red'};
+    tbody.innerHTML = prodRows.map(({p, pRev, pAd, pProfit}) => {
+      const roas = pAd > 0 ? (pRev/pAd*100).toFixed(0)+'%' : '-';
+      const pc = pProfit >= 0 ? 'var(--green)' : 'var(--red)';
+      return `<tr onclick="selectProductFromSidebar('${p.id}')">
+        <td style="font-weight:600">${p.name}</td>
+        <td><span class="badge ${statusBadge[p.status]}">${statusLabel[p.status]}</span></td>
+        <td class="num">${pRev > 0 ? fmt(pRev) : '-'}</td>
+        <td class="num" style="color:${pc}">${pRev > 0 ? fmt(pProfit) : '-'}</td>
+        <td class="num" style="color:var(--accent)">${roas}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // 알림
+  renderAlerts();
+
+  // 물류 요약
+  const logEl = document.getElementById('dash-logistics-summary');
+  if (!state.logistics.length) {
+    logEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">진행 중인 물류 건이 없습니다</div>';
+  } else {
+    logEl.innerHTML = state.logistics.map(l => {
       const curIdx = LOGISTICS_STAGES.indexOf(l.status);
-      const stepsHtml = LOGISTICS_STAGES.map((st, i) => {
-        let cls = i < curIdx ? 'done' : i === curIdx ? 'active' : '';
-        let dot = i < curIdx ? '✓' : (i+1);
+      const days = Math.max(0, Math.floor((Date.now() - new Date(l.date)) / 86400000));
+      const stepsHtml = LOGISTICS_STAGES.map((st,i) => {
+        const cls = i < curIdx ? 'done' : i === curIdx ? 'active' : '';
+        const dot = i < curIdx ? '✓' : i+1;
         return `<div class="step-item ${cls}"><div class="step-dot">${dot}</div><div class="step-label">${st}</div></div>`;
       }).join('');
-      
-      const days = Math.max(0, Math.floor((new Date() - new Date(l.date)) / 86400000));
-      return `
-        <div style="margin-bottom:24px; border:1px solid var(--border); padding:16px; border-radius:8px;">
-          <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
-            <span style="font-weight:700; font-size:15px;">${l.product}</span>
-            <span style="font-size:12px; color:${days>=4?'var(--red)':'var(--text2)'}">현재 상태 ${days}일째</span>
-          </div>
-          <div class="step-progress">${stepsHtml}</div>
+      return `<div style="margin-bottom:16px;border:1px solid var(--border);padding:14px;border-radius:8px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+          <span style="font-weight:700">${l.product}</span>
+          <span style="font-size:12px;color:${days>=4?'var(--red)':'var(--text3)'}">${l.status} · ${days}일째</span>
         </div>
-      `;
+        <div class="step-progress">${stepsHtml}</div>
+      </div>`;
     }).join('');
   }
 }
 
-function renderProductsPage() {
-  const tbody = document.getElementById('products-table-body');
-  if(!state.products.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:40px; color:var(--text3);">등록된 제품이 없습니다.</td></tr>`; return;
+function renderDailyBarChart(mk, days, filterPid) {
+  const products = filterPid === 'all' ? state.products : state.products.filter(p => p.id === filterPid);
+  const dailyData = [];
+  for (let d = 1; d <= days; d++) {
+    const dk = `${mk}-${String(d).padStart(2,'0')}`;
+    let rev = 0, ad = 0, units = 0;
+    products.forEach(p => {
+      const dd = (state.adData[p.id] || {})[dk] || {};
+      rev += dd.revenue || 0;
+      ad += dd.adCost || 0;
+      units += dd.units || 0;
+    });
+    // 간단한 원가 추정 (평균 원가율 사용)
+    const avgCostRate = products.length > 0 ? products.reduce((s,p) => s + (p.price > 0 ? p.cost/p.price : 0.35), 0) / products.length : 0.35;
+    const avgCommRate = products.length > 0 ? products.reduce((s,p) => s + (p.commission||10.8)/100, 0) / products.length : 0.108;
+    const profit = rev - ad - (rev * avgCostRate) - (rev * avgCommRate);
+    dailyData.push({ d, rev, ad, profit });
   }
-  tbody.innerHTML = state.products.map(p => {
-    const marginRatio = p.price > 0 ? ((p.price - p.cost - (p.price*0.108)) / p.price * 100).toFixed(1) : 0;
-    const stLabel = p.status==='advertising'?'광고/판매중':p.status==='registered'?'대기/입고중':'일시중단';
-    return `
-      <tr>
-        <td style="font-weight:700; color:var(--text);">${p.name}</td>
-        <td><span class="badge ${p.status==='advertising'?'badge-blue':'badge-gray'}">${stLabel}</span></td>
-        <td class="num">₩${p.cost.toLocaleString()}</td>
-        <td class="num">₩${p.price.toLocaleString()}</td>
-        <td class="num" style="color:${marginRatio>=30?'var(--green)':'var(--red)'};">${marginRatio}%</td>
-        <td><button class="btn btn-secondary btn-sm" onclick="openProductModal('${p.id}')">수정</button></td>
-      </tr>
-    `;
-  }).join('');
-}
 
-// ==========================================
-// 2. LOGISTICS (Cards + Timeline + Checklists)
-// ==========================================
-function openLogisticsModal() {
-  const select = document.getElementById('l-product');
-  if(state.products.length === 0) { alert("먼저 [제품 통합 관리]에서 제품을 등록해주세요."); return navigate('products'); }
-  
-  select.innerHTML = state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-  document.getElementById('l-bl').value='';
-  document.getElementById('l-status').value='입항전';
-  
-  const offset = new Date().getTimezoneOffset() * 60000;
-  document.getElementById('l-date').value = new Date(Date.now() - offset).toISOString().split('T')[0];
-  openModal('modal-logistics');
-}
-
-function saveLogistics() {
-  const prodId = document.getElementById('l-product').value;
-  const dateStr = document.getElementById('l-date').value;
-  if(!prodId || !dateStr) return alert("제품과 발생일을 모두 입력하세요.");
-  
-  const p = state.products.find(x => x.id === prodId);
-  state.logistics.push({
-    id: Date.now().toString(), prodId, product: p.name, 
-    bl: document.getElementById('l-bl').value,
-    status: document.getElementById('l-status').value, 
-    date: dateStr,
-    checks: { chk1:false, chk2:false, chk3:false, chk4:false, chk5:false }
-  });
-  saveState(); closeModal('modal-logistics'); renderLogistics();
-}
-
-// 상태 드롭다운 변경 시
-function updateLogStatus(id, newStatus) {
-  const logItem = state.logistics.find(x => x.id === id);
-  if(logItem && logItem.status !== newStatus) {
-    logItem.status = newStatus;
-    // 상태가 변하면 체류일(시작일)을 오늘로 자동 리셋
-    const offset = new Date().getTimezoneOffset() * 60000;
-    logItem.date = new Date(Date.now() - offset).toISOString().split('T')[0];
-    saveState(); renderLogistics();
-  }
-}
-
-function toggleLogCheck(logId, checkKey) {
-  const logItem = state.logistics.find(x => x.id === logId);
-  if(logItem) {
-    logItem.checks[checkKey] = !logItem.checks[checkKey];
-    saveState(); renderLogistics();
-  }
-}
-
-function renderLogistics() {
-  const container = document.getElementById('logistics-cards-container');
-  if(!state.logistics.length) {
-    container.innerHTML = `<div style="text-align:center; padding:50px; border:2px dashed var(--border); border-radius:12px; color:var(--text3);">+ 배송 화물 추가 버튼을 눌러 물류를 시작하세요.</div>`;
+  const hasData = dailyData.some(x => x.rev > 0);
+  const chartEl = document.getElementById('daily-bar-chart');
+  if (!hasData) {
+    chartEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3);font-size:13px">광고 데이터를 입력하면 차트가 표시됩니다</div>';
     return;
   }
-  
-  const today = new Date();
-  container.innerHTML = state.logistics.map(l => {
-    const curIdx = LOGISTICS_STAGES.indexOf(l.status);
-    const days = Math.max(0, Math.floor((today - new Date(l.date)) / 86400000));
-    
-    // 타임라인 생성
-    const stepsHtml = LOGISTICS_STAGES.map((st, i) => {
-      let cls = i < curIdx ? 'done' : i === curIdx ? 'active' : '';
-      let dot = i < curIdx ? '✓' : (i+1);
-      return `<div class="step-item ${cls}"><div class="step-dot">${dot}</div><div class="step-label">${st}</div></div>`;
-    }).join('');
 
-    // 체크리스트 생성 (해당 단계에 도달하지 않은 항목은 흐리게 처리)
-    const checksHtml = LOGISTICS_CHECKS.map(c => {
-      const isChecked = l.checks[c.key];
-      const isReachable = curIdx >= c.stageIdx; // 현재 단계가 체크항목의 권장 단계에 도달했는지
-      return `
-        <div class="check-item ${isChecked ? 'checked' : ''} ${!isReachable ? 'disabled' : ''}" onclick="${isReachable ? `toggleLogCheck('${l.id}','${c.key}')` : ''}">
-          <div class="check-box">${isChecked ? '✓' : ''}</div>
-          <span style="flex:1;">${c.label}</span>
-          <span class="badge badge-gray" style="font-size:10px;">${LOGISTICS_STAGES[c.stageIdx]}</span>
+  const maxRev = Math.max(...dailyData.map(x => x.rev), 1);
+  const today = new Date().getDate();
+  const curMk = getMonthKey(new Date());
+
+  chartEl.innerHTML = `<div class="bar-chart-wrap" style="height:140px;gap:2px">` +
+    dailyData.map(({d, rev, ad, profit}) => {
+      const revH = Math.max(rev / maxRev * 110, rev > 0 ? 4 : 0);
+      const adH = Math.max(ad / maxRev * 110, ad > 0 ? 4 : 0);
+      const profH = Math.max(Math.abs(profit) / maxRev * 110, profit !== 0 ? 2 : 0);
+      const profColor = profit >= 0 ? 'var(--green)' : 'var(--red)';
+      const isToday = mk === curMk && d === today;
+      return `<div class="bar-col" title="${d}일: 매출 ${fmt(rev)} / 광고비 ${fmt(ad)} / 순이익 ${fmt(profit)}">
+        <div style="display:flex;align-items:flex-end;gap:1px;flex:1">
+          <div class="bar-fill" style="height:${revH}px;background:#3b82f6;opacity:.7;flex:1"></div>
+          <div class="bar-fill" style="height:${adH}px;background:#ef4444;opacity:.6;flex:1"></div>
+          <div class="bar-fill" style="height:${profH}px;background:${profColor};opacity:.8;flex:1"></div>
         </div>
-      `;
-    }).join('');
-
-    return `
-      <div class="card" style="padding:24px; margin-bottom:24px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <div>
-            <div style="font-size:18px; font-weight:700; color:var(--text); margin-bottom:4px;">${l.product}</div>
-            <div style="font-size:13px; color:var(--text2);">BL: <span style="color:var(--accent); text-decoration:underline;">${l.bl||'미발급'}</span></div>
-          </div>
-          <div style="text-align:right;">
-            <select class="form-select" style="width:auto; padding:6px 10px; font-size:13px; font-weight:700; color:var(--accent); background:var(--accent-light); border:none;" onchange="updateLogStatus('${l.id}', this.value)">
-              ${LOGISTICS_STAGES.map(s => `<option value="${s}" ${l.status===s?'selected':''}>상태: ${s}</option>`).join('')}
-            </select>
-            <div style="font-size:12px; margin-top:6px; color:${days>=4?'var(--red)':'var(--text3)'};">해당 단계 ${days}일째</div>
-          </div>
-        </div>
-
-        <div class="step-progress">${stepsHtml}</div>
-
-        <div style="margin-top:24px; padding-top:20px; border-top:1px dashed var(--border);">
-          <div style="font-size:13px; font-weight:700; color:var(--text2); margin-bottom:12px;">✅ 진행 상황별 필수 체크리스트</div>
-          <div class="checklist">${checksHtml}</div>
-        </div>
-
-        <div style="text-align:right; margin-top:16px;">
-          <button class="btn btn-danger btn-sm" style="background:transparent; border:none;" onclick="state.logistics=state.logistics.filter(x=>x.id!=='${l.id}'); saveState(); renderLogistics();">내역 삭제</button>
-        </div>
-      </div>
-    `;
-  }).join('');
+        <div class="bar-label" style="color:${isToday?'var(--accent)':'var(--text3)'}${isToday?';font-weight:700':''}">${d}</div>
+      </div>`;
+    }).join('') + '</div>';
 }
 
-// ── 제품 및 마진 계산기 CRUD 관련 공통 로직은 지면상 기존 V6와 동일하게 작동 ──
-function openProductModal(id=null) {
-  state.editProdId = id; 
-  if(id) {
+function renderAlerts() {
+  const el = document.getElementById('dash-alerts');
+  const alerts = [];
+
+  // ROAS 낮은 제품
+  state.products.forEach(p => {
+    const mk = getMonthKey(state.dashDate);
+    const days = getDaysInMonth(state.dashDate);
+    const pData = state.adData[p.id] || {};
+    let pRev = 0, pAd = 0;
+    for (let d = 1; d <= days; d++) {
+      const dd = pData[`${mk}-${String(d).padStart(2,'0')}`] || {};
+      pRev += dd.revenue || 0; pAd += dd.adCost || 0;
+    }
+    if (pAd > 0 && pRev / pAd < 2) alerts.push({ type:'danger', icon:'📉', text:`[${p.name}] ROAS ${(pRev/pAd*100).toFixed(0)}%로 손익분기점 미달` });
+    else if (pAd > 0 && pRev / pAd < 3) alerts.push({ type:'warn', icon:'⚠️', text:`[${p.name}] ROAS ${(pRev/pAd*100).toFixed(0)}% · 주의 필요` });
+  });
+
+  // 물류 지연
+  state.logistics.forEach(l => {
+    const days = Math.max(0, Math.floor((Date.now() - new Date(l.date)) / 86400000));
+    if (days >= 5) alerts.push({ type:'danger', icon:'🚨', text:`[${l.product}] ${l.status} 상태 ${days}일째 · 확인 필요` });
+    else if (days >= 3) alerts.push({ type:'warn', icon:'🚢', text:`[${l.product}] ${l.status} 상태 ${days}일째` });
+  });
+
+  if (!alerts.length) {
+    el.innerHTML = '<div class="alert-item success"><span>✅</span><div>현재 특이 알림이 없습니다.</div></div>';
+  } else {
+    el.innerHTML = alerts.map(a => `<div class="alert-item ${a.type}"><span>${a.icon}</span><div>${a.text}</div></div>`).join('');
+  }
+}
+
+// ══════════════════════════════════════════════
+// 제품 목록 & 상세
+// ══════════════════════════════════════════════
+function renderProductList() {
+  const container = document.getElementById('product-card-list');
+  const detail = document.getElementById('product-detail-panel');
+  container.style.display = 'block';
+  detail.style.display = 'none';
+
+  if (!state.products.length) {
+    container.innerHTML = `<div style="text-align:center;padding:48px;border:2px dashed var(--border);border-radius:10px;color:var(--text3)">
+      <div style="font-size:32px;margin-bottom:10px">📦</div>
+      <div style="font-weight:600;margin-bottom:4px">등록된 제품이 없습니다</div>
+      <div style="font-size:13px">상단 버튼으로 첫 제품을 추가하세요</div>
+    </div>`;
+    return;
+  }
+
+  const mk = getMonthKey(state.pdDate);
+  const days = getDaysInMonth(state.pdDate);
+  const statusLabel = {registered:'대기·입고중', advertising:'광고·판매중', paused:'일시중단'};
+  const statusBadge = {registered:'badge-gray', advertising:'badge-blue', paused:'badge-red'};
+
+  container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">` +
+    state.products.map(p => {
+      const pData = state.adData[p.id] || {};
+      let pRev = 0, pAd = 0, pUnits = 0;
+      for (let d = 1; d <= days; d++) {
+        const dd = pData[`${mk}-${String(d).padStart(2,'0')}`] || {};
+        pRev += dd.revenue || 0; pAd += dd.adCost || 0; pUnits += dd.units || 0;
+      }
+      const pCogs = pUnits * p.cost;
+      const pComm = pRev * ((p.commission||10.8)/100);
+      const pProfit = pRev - pAd - pCogs - pComm;
+      const roas = pAd > 0 ? (pRev/pAd*100).toFixed(0)+'%' : '-';
+      const marginRate = p.price > 0 ? ((p.price - p.cost - p.price*(p.commission||10.8)/100) / p.price * 100).toFixed(1) : 0;
+      const pc = pProfit >= 0 ? 'var(--green)' : 'var(--red)';
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px;cursor:pointer;transition:all .15s"
+          onclick="selectProduct('${p.id}')" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,.08)'" onmouseout="this.style.boxShadow=''">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
+          <div style="font-weight:700;font-size:15px;flex:1;margin-right:8px">${p.name}</div>
+          <span class="badge ${statusBadge[p.status]}">${statusLabel[p.status]}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px;margin-bottom:14px">
+          <div style="background:var(--surface2);padding:10px;border-radius:6px"><div style="color:var(--text3);margin-bottom:3px">이번달 매출</div><div style="font-family:'JetBrains Mono';font-weight:700">${pRev > 0 ? fmt(pRev) : '-'}</div></div>
+          <div style="background:var(--surface2);padding:10px;border-radius:6px"><div style="color:var(--text3);margin-bottom:3px">순이익</div><div style="font-family:'JetBrains Mono';font-weight:700;color:${pc}">${pRev > 0 ? fmt(pProfit) : '-'}</div></div>
+          <div style="background:var(--surface2);padding:10px;border-radius:6px"><div style="color:var(--text3);margin-bottom:3px">ROAS</div><div style="font-family:'JetBrains Mono';font-weight:700;color:var(--accent)">${roas}</div></div>
+          <div style="background:var(--surface2);padding:10px;border-radius:6px"><div style="color:var(--text3);margin-bottom:3px">이론 마진율</div><div style="font-family:'JetBrains Mono';font-weight:700;color:${marginRate>=20?'var(--green)':'var(--red)'}">${marginRate}%</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text3)">
+          <span>판매가 ${fmt(p.price)} · 원가 ${fmt(p.cost)}</span>
+          <span style="color:var(--accent);font-weight:600">상세 보기 →</span>
+        </div>
+      </div>`;
+    }).join('') + '</div>';
+}
+
+function selectProduct(id) {
+  state.curProdId = id;
+  document.getElementById('product-card-list').style.display = 'none';
+  document.getElementById('product-detail-panel').style.display = 'block';
+  renderSidebar();
+  state.pdDate = new Date();
+  renderProductDetail();
+}
+
+function deselectProduct() {
+  state.curProdId = null;
+  renderSidebar();
+  renderProductList();
+}
+
+function renderProductDetail() {
+  const p = state.products.find(x => x.id === state.curProdId);
+  if (!p) return;
+  const statusLabel = {registered:'대기·입고중', advertising:'광고·판매중', paused:'일시중단'};
+  const statusBadge = {registered:'badge-gray', advertising:'badge-blue', paused:'badge-red'};
+  document.getElementById('detail-prod-name').textContent = p.name;
+  const sb = document.getElementById('detail-prod-status-badge');
+  sb.textContent = statusLabel[p.status]; sb.className = 'badge ' + statusBadge[p.status];
+
+  const mk = getMonthKey(state.pdDate);
+  const days = getDaysInMonth(state.pdDate);
+  document.getElementById('pd-month-display').textContent = mk;
+
+  const pData = state.adData[p.id] || {};
+  let pRev = 0, pAd = 0, pUnits = 0;
+  for (let d = 1; d <= days; d++) {
+    const dd = pData[`${mk}-${String(d).padStart(2,'0')}`] || {};
+    pRev += dd.revenue||0; pAd += dd.adCost||0; pUnits += dd.units||0;
+  }
+  const pCogs = pUnits * p.cost;
+  const pComm = pRev * ((p.commission||10.8)/100);
+  const pProfit = pRev - pAd - pCogs - pComm;
+  const roas = pAd > 0 ? (pRev/pAd*100).toFixed(0)+'%' : '-';
+
+  document.getElementById('pd-kpi-rev').textContent = pRev > 0 ? fmt(pRev) : '-';
+  document.getElementById('pd-kpi-ad').textContent = pAd > 0 ? fmt(pAd) : '-';
+  const pe = document.getElementById('pd-kpi-profit');
+  pe.textContent = pRev > 0 ? fmt(pProfit) : '-';
+  pe.style.color = pProfit >= 0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('pd-kpi-roas').textContent = roas;
+
+  renderAdInputGrid();
+  renderSettlement();
+}
+
+// ── 광고 입력 그리드 ──
+function renderAdInputGrid() {
+  const p = state.products.find(x => x.id === state.curProdId);
+  if (!p) return;
+  const mk = getMonthKey(state.pdDate);
+  const days = getDaysInMonth(state.pdDate);
+  const pData = state.adData[p.id] || {};
+
+  const cols = ['날짜','판매금액(원)','판매수량','광고비(원)','노출수','클릭수','순이익'];
+  const colKeys = ['revenue','units','adCost','impressions','clicks'];
+
+  let html = `<div class="ad-grid" style="grid-template-columns:90px repeat(${cols.length-1},1fr)">`;
+  // 헤더
+  cols.forEach(c => html += `<div class="ad-cell head">${c}</div>`);
+  // 데이터 행
+  for (let d = 1; d <= days; d++) {
+    const dk = `${mk}-${String(d).padStart(2,'0')}`;
+    const dd = pData[dk] || {};
+    const wd = new Date(dk).getDay();
+    const isWe = wd === 0 || wd === 6;
+    const rev = dd.revenue || 0;
+    const ad = dd.adCost || 0;
+    const units = dd.units || 0;
+    const cogs = units * p.cost;
+    const comm = rev * ((p.commission||10.8)/100);
+    const profit = rev - ad - cogs - comm;
+    const profCls = profit > 0 ? 'profit-pos' : profit < 0 ? 'profit-neg' : '';
+
+    html += `<div class="ad-cell day-label ${isWe?'weekend':''}" style="${isWe?'color:var(--red)':''}">${d}일(${weekdayKR[wd]})</div>`;
+    colKeys.forEach(k => {
+      html += `<div class="ad-cell ${isWe?'weekend':''}">
+        <input type="number" value="${dd[k]||''}" placeholder="0" min="0"
+          data-dk="${dk}" data-key="${k}"
+          onchange="updateAdCell(this)" onfocus="this.select()">
+      </div>`;
+    });
+    html += `<div class="ad-cell ${profCls} ${isWe?'weekend':''}">${rev > 0 || ad > 0 ? fmt(profit) : ''}</div>`;
+  }
+  html += '</div>';
+  document.getElementById('ad-input-grid').innerHTML = html;
+}
+
+function updateAdCell(input) {
+  const p = state.products.find(x => x.id === state.curProdId);
+  if (!p) return;
+  const dk = input.dataset.dk, key = input.dataset.key;
+  if (!state.adData[p.id]) state.adData[p.id] = {};
+  if (!state.adData[p.id][dk]) state.adData[p.id][dk] = {};
+  state.adData[p.id][dk][key] = parseFloat(input.value) || 0;
+  // 순이익 실시간 업데이트
+  const dd = state.adData[p.id][dk];
+  const rev = dd.revenue||0, ad = dd.adCost||0, units = dd.units||0;
+  const profit = rev - ad - units*p.cost - rev*((p.commission||10.8)/100);
+  // 해당 행의 마지막 셀 업데이트
+  saveState();
+  renderProductDetail();
+  document.getElementById('ad-save-status').textContent = `✓ 자동저장됨`;
+  setTimeout(() => { const el = document.getElementById('ad-save-status'); if(el) el.textContent=''; }, 2000);
+}
+
+function saveAdGridAll() {
+  saveState();
+  renderDashboard();
+  document.getElementById('ad-save-status').textContent = '✓ 저장완료';
+  setTimeout(() => { const el = document.getElementById('ad-save-status'); if(el) el.textContent=''; }, 2000);
+}
+
+// ── 손익계산서 ──
+function renderSettlement() {
+  const p = state.products.find(x => x.id === state.curProdId);
+  if (!p) return;
+  const mk = getMonthKey(state.pdDate);
+  const days = getDaysInMonth(state.pdDate);
+  const pData = state.adData[p.id] || {};
+
+  const el = document.getElementById('settlement-month-label');
+  if (el) el.textContent = mk;
+
+  let rows = [], cumProfit = 0;
+  for (let d = 1; d <= days; d++) {
+    const dk = `${mk}-${String(d).padStart(2,'0')}`;
+    const dd = pData[dk] || {};
+    const rev = dd.revenue||0, ad = dd.adCost||0, units = dd.units||0;
+    if (rev === 0 && ad === 0) continue;
+    const cogs = units * p.cost;
+    const comm = rev * ((p.commission||10.8)/100);
+    const profit = rev - ad - cogs - comm;
+    cumProfit += profit;
+    const wd = new Date(dk).getDay();
+    rows.push({d, wd, rev, units, cogs, comm, ad, profit, cumProfit});
+  }
+
+  const tbody = document.getElementById('settlement-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--text3)">이번달 데이터가 없습니다</td></tr>';
+    return;
+  }
+
+  // 합계
+  const totRev = rows.reduce((s,r) => s+r.rev, 0);
+  const totAd = rows.reduce((s,r) => s+r.ad, 0);
+  const totCogs = rows.reduce((s,r) => s+r.cogs, 0);
+  const totComm = rows.reduce((s,r) => s+r.comm, 0);
+  const totProfit = rows.reduce((s,r) => s+r.profit, 0);
+
+  tbody.innerHTML = rows.map(r => {
+    const pc = r.profit >= 0 ? 'var(--green)' : 'var(--red)';
+    const cc = r.cumProfit >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<tr>
+      <td style="${r.wd===0||r.wd===6?'color:var(--red)':''}">${r.d}일(${weekdayKR[r.wd]})</td>
+      <td class="num">${fmt(r.rev)}</td>
+      <td class="num">${r.units}개</td>
+      <td class="num" style="color:var(--text2)">${fmt(r.cogs)}</td>
+      <td class="num" style="color:var(--text2)">${fmt(r.comm)}</td>
+      <td class="num" style="color:var(--red)">${fmt(r.ad)}</td>
+      <td class="num" style="font-weight:700;color:${pc}">${fmt(r.profit)}</td>
+      <td class="num" style="color:${cc}">${fmt(r.cumProfit)}</td>
+    </tr>`;
+  }).join('') + `
+  <tr style="background:var(--surface2);font-weight:700">
+    <td>합 계</td>
+    <td class="num">${fmt(totRev)}</td>
+    <td class="num">${rows.reduce((s,r)=>s+r.units,0)}개</td>
+    <td class="num">${fmt(totCogs)}</td>
+    <td class="num">${fmt(totComm)}</td>
+    <td class="num" style="color:var(--red)">${fmt(totAd)}</td>
+    <td class="num" style="color:${totProfit>=0?'var(--green)':'var(--red)'}">${fmt(totProfit)}</td>
+    <td class="num" style="color:${totProfit>=0?'var(--green)':'var(--red)'}">-</td>
+  </tr>`;
+}
+
+// ── CSV 업로드 파싱 ──
+function handleCsvDrop(event) {
+  event.preventDefault();
+  document.getElementById('csv-drop-zone').classList.remove('over');
+  const file = event.dataTransfer.files[0];
+  if (file) processCsvFile(file);
+}
+function handleCsvFile(input) {
+  const file = input.files[0];
+  if (file) processCsvFile(file);
+  input.value = '';
+}
+
+function processCsvFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array'});
+      // DATA 시트 우선, 없으면 첫번째 시트
+      const sheetName = wb.SheetNames.includes('DATA') ? 'DATA' : wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+      parseCoupangAdReport(rows, file.name);
+    } catch(err) {
+      document.getElementById('csv-parse-result').innerHTML = `<div class="alert-item danger">파싱 실패: ${err.message}</div>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseCoupangAdReport(rows, fileName) {
+  const p = state.products.find(x => x.id === state.curProdId);
+  if (!p) return;
+  if (!state.adData[p.id]) state.adData[p.id] = {};
+
+  let parsed = 0, skipped = 0;
+
+  rows.forEach(row => {
+    // 캠페인 시작일 컬럼 찾기
+    const dateVal = row['캠페인 시작일'] || row['날짜'] || row['일자'] || row['date'] || '';
+    const adCostVal = parseFloat(String(row['광고비']||'0').replace(/[^0-9.]/g,'')) || 0;
+    const revVal = parseFloat(String(row['총 전환매출액(14일)']||row['전환매출액']||'0').replace(/[^0-9.]/g,'')) || 0;
+    const clickVal = parseInt(String(row['클릭수']||'0').replace(/[^0-9]/g,'')) || 0;
+    const impVal = parseInt(String(row['노출수']||'0').replace(/[^0-9]/g,'')) || 0;
+
+    if (!dateVal || adCostVal === 0) { skipped++; return; }
+
+    // 날짜 파싱 (YYYY.MM.DD or YYYY-MM-DD)
+    const dateStr = String(dateVal).replace(/\./g, '-');
+    const dk = dateStr.substring(0, 10);
+    if (!dk.match(/^\d{4}-\d{2}-\d{2}$/)) { skipped++; return; }
+
+    if (!state.adData[p.id][dk]) state.adData[p.id][dk] = {};
+    const existing = state.adData[p.id][dk];
+    state.adData[p.id][dk] = {
+      ...existing,
+      adCost: (existing.adCost || 0) + adCostVal,
+      revenue: Math.max(existing.revenue || 0, revVal),
+      clicks: (existing.clicks || 0) + clickVal,
+      impressions: (existing.impressions || 0) + impVal,
+    };
+    parsed++;
+  });
+
+  saveState();
+  renderProductDetail();
+
+  document.getElementById('csv-parse-result').innerHTML = `
+    <div class="alert-item ${parsed>0?'success':'warn'}">
+      <span>${parsed>0?'✅':'⚠️'}</span>
+      <div>
+        <strong>[${fileName}] 파싱 완료</strong><br>
+        적용된 행: ${parsed}개 / 건너뛴 행: ${skipped}개<br>
+        <span style="font-size:12px;color:var(--text3)">날짜별 광고비가 누적 합산됩니다. 중복 업로드 시 주의하세요.</span>
+      </div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════
+// 제품 CRUD
+// ══════════════════════════════════════════════
+function openProductModal(id = null) {
+  state.editProdId = id;
+  if (id) {
     const p = state.products.find(x => x.id === id);
-    document.getElementById('mp-title').textContent = "제품 정보 수정";
+    document.getElementById('mp-title').textContent = '제품 수정';
     document.getElementById('mp-name').value = p.name;
-    document.getElementById('mp-price').value = p.price;
+    document.getElementById('mp-url').value = p.url || '';
     document.getElementById('mp-cost').value = p.cost;
+    document.getElementById('mp-price').value = p.price;
+    document.getElementById('mp-commission').value = p.commission || 10.8;
+    document.getElementById('mp-qty').value = p.initialQty || '';
     document.getElementById('mp-status').value = p.status;
+    document.getElementById('mp-memo').value = p.memo || '';
     document.getElementById('btn-del-prod').style.display = 'block';
   } else {
-    document.getElementById('mp-title').textContent = "새 제품 등록";
-    ['mp-name','mp-price','mp-cost'].forEach(x => document.getElementById(x).value = '');
+    document.getElementById('mp-title').textContent = '새 제품 등록';
+    ['mp-name','mp-url','mp-cost','mp-price','mp-qty','mp-memo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('mp-commission').value = '10.8';
     document.getElementById('mp-status').value = 'registered';
     document.getElementById('btn-del-prod').style.display = 'none';
   }
@@ -641,64 +1229,398 @@ function openProductModal(id=null) {
 
 function saveProduct() {
   const name = document.getElementById('mp-name').value.trim();
-  if(!name) return alert("제품명을 입력해주세요.");
-  const p = { id: state.editProdId || Date.now().toString(), name, price: parseFloat(document.getElementById('mp-price').value)||0, cost: parseFloat(document.getElementById('mp-cost').value)||0, status: document.getElementById('mp-status').value };
-  if(state.editProdId) state.products = state.products.map(x => x.id===state.editProdId ? p : x); else state.products.push(p);
-  saveState(); closeModal('modal-product'); renderSidebar(); renderProductsPage(); 
+  if (!name) return alert('제품명을 입력하세요.');
+  const id = state.editProdId || Date.now().toString();
+  const p = {
+    id, name,
+    url: document.getElementById('mp-url').value,
+    cost: parseFloat(document.getElementById('mp-cost').value) || 0,
+    price: parseFloat(document.getElementById('mp-price').value) || 0,
+    commission: parseFloat(document.getElementById('mp-commission').value) || 10.8,
+    initialQty: parseInt(document.getElementById('mp-qty').value) || 0,
+    status: document.getElementById('mp-status').value,
+    memo: document.getElementById('mp-memo').value,
+  };
+  if (state.editProdId) {
+    state.products = state.products.map(x => x.id === state.editProdId ? p : x);
+  } else {
+    state.products.push(p);
+    if (!state.adData[id]) state.adData[id] = {};
+  }
+  saveState();
+  closeModal('modal-product');
+  renderSidebar();
+  updateDashFilter();
+  if (document.getElementById('page-products').classList.contains('active')) renderProductList();
+  if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
 }
 
 function deleteProduct() {
-  if(!confirm("삭제하시겠습니까?")) return;
-  state.products = state.products.filter(p => p.id !== state.editProdId);
-  saveState(); closeModal('modal-product'); renderSidebar(); renderProductsPage();
+  if (!confirm('이 제품과 모든 광고 데이터를 삭제합니까?')) return;
+  const id = state.editProdId;
+  state.products = state.products.filter(p => p.id !== id);
+  delete state.adData[id];
+  if (state.curProdId === id) state.curProdId = null;
+  saveState();
+  closeModal('modal-product');
+  renderSidebar();
+  renderProductList();
+}
+
+function updateDashFilter() {
+  const sel = document.getElementById('dash-prod-filter');
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = '<option value="all">전체 통합</option>' +
+    state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  if (state.products.find(p => p.id === prev)) sel.value = prev;
+}
+
+// ══════════════════════════════════════════════
+// 소싱 탐색기
+// ══════════════════════════════════════════════
+function openAddSourcingModal() {
+  ['s-name','s-url','s-memo'].forEach(id => document.getElementById(id).value = '');
+  ['s-price','s-sell'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('s-status').value = '검토중';
+  openModal('modal-sourcing');
+}
+
+function saveSourcing() {
+  const name = document.getElementById('s-name').value.trim();
+  if (!name) return alert('아이템명을 입력하세요.');
+  state.sourcingList.push({
+    id: Date.now().toString(), name,
+    url: document.getElementById('s-url').value,
+    price: parseFloat(document.getElementById('s-price').value) || 0,
+    sellPrice: parseFloat(document.getElementById('s-sell').value) || 0,
+    status: document.getElementById('s-status').value,
+    memo: document.getElementById('s-memo').value,
+    createdAt: new Date().toLocaleDateString('ko-KR'),
+  });
+  saveState();
+  closeModal('modal-sourcing');
+  renderSourcing();
+}
+
+function renderSourcing() {
+  const container = document.getElementById('sourcing-list-container');
+  const filter = document.getElementById('sourcing-filter')?.value || 'all';
+  const list = filter === 'all' ? state.sourcingList : state.sourcingList.filter(s => s.status === filter);
+
+  if (!list.length) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3);border:2px dashed var(--border);border-radius:8px">소싱 후보를 추가해보세요</div>';
+    return;
+  }
+
+  const statusBadge = {'검토중':'badge-yellow','소싱확정':'badge-green','보류':'badge-gray'};
+  container.innerHTML = list.map(s => {
+    const marginRate = s.price > 0 && s.sellPrice > 0
+      ? ((s.sellPrice - s.price - s.sellPrice * 0.108) / s.sellPrice * 100).toFixed(1)
+      : null;
+    return `<div class="sourcing-card" style="border-radius:8px;padding:16px;margin-bottom:10px">
+      <div class="sourcing-card-img">🔍</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+          <span style="font-weight:700;font-size:14px">${s.name}</span>
+          <span class="badge ${statusBadge[s.status]}">${s.status}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px">${s.createdAt} 추가</div>
+        ${s.price || s.sellPrice ? `<div style="font-size:13px;display:flex;gap:12px">
+          ${s.price ? `<span>원가 <b>${fmt(s.price)}</b></span>` : ''}
+          ${s.sellPrice ? `<span>판매가 <b>${fmt(s.sellPrice)}</b></span>` : ''}
+          ${marginRate ? `<span style="color:${marginRate>=20?'var(--green)':'var(--red)'}">마진율 <b>${marginRate}%</b></span>` : ''}
+        </div>` : ''}
+        ${s.memo ? `<div style="font-size:12px;color:var(--text2);margin-top:6px;white-space:pre-wrap">${s.memo}</div>` : ''}
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        ${s.url ? `<button class="btn btn-secondary btn-xs" onclick="window.open('${s.url}','_blank')">링크</button>` : ''}
+        <button class="btn btn-primary btn-xs" onclick="convertSourcingToProduct('${s.id}')">제품등록</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteSourcing('${s.id}')">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function convertSourcingToProduct(id) {
+  const s = state.sourcingList.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('mp-name').value = s.name;
+  document.getElementById('mp-cost').value = s.price;
+  document.getElementById('mp-price').value = s.sellPrice;
+  document.getElementById('mp-url').value = s.url || '';
+  document.getElementById('mp-status').value = 'registered';
+  document.getElementById('mp-title').textContent = '소싱 → 제품 등록';
+  document.getElementById('btn-del-prod').style.display = 'none';
+  state.editProdId = null;
+  openModal('modal-product');
+}
+
+function deleteSourcing(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  state.sourcingList = state.sourcingList.filter(x => x.id !== id);
+  saveState();
+  renderSourcing();
+}
+
+// ══════════════════════════════════════════════
+// 마진 계산기
+// ══════════════════════════════════════════════
+function applyExchangeRateUI() {
+  const cur = document.getElementById('m-currency')?.value || 'CNY';
+  const rateInput = document.getElementById('m-rate');
+  if (rateInput) rateInput.value = cur === 'KRW' ? 1 : (exchangeRates[cur] || 190);
+  calcMargin();
 }
 
 function calcMargin() {
   const cur = document.getElementById('m-currency')?.value || 'CNY';
-  const rate = parseFloat(document.getElementById('m-rate')?.value)||0;
-  const pur = parseFloat(document.getElementById('m-purchase')?.value)||0;
-  const cus = (parseFloat(document.getElementById('m-customs')?.value)||0)/100;
-  const shipO = parseFloat(document.getElementById('m-shipping')?.value)||0;
-  const shipD = parseFloat(document.getElementById('m-domestic')?.value)||0;
-  const price = parseFloat(document.getElementById('m-price')?.value)||0;
-  const fee = (parseFloat(document.getElementById('m-fee')?.value)||0)/100;
+  const rate = parseFloat(document.getElementById('m-rate')?.value) || 0;
+  const pur = parseFloat(document.getElementById('m-purchase')?.value) || 0;
+  const customsRate = (parseFloat(document.getElementById('m-customs')?.value) || 0) / 100;
+  const shipO = parseFloat(document.getElementById('m-shipping')?.value) || 0;
+  const shipD = parseFloat(document.getElementById('m-domestic')?.value) || 0;
+  const price = parseFloat(document.getElementById('m-price')?.value) || 0;
+  const feeRate = (parseFloat(document.getElementById('m-fee')?.value) || 10.8) / 100;
+  const qty = parseInt(document.getElementById('m-qty')?.value) || 0;
+  const reviewQty = parseInt(document.getElementById('m-review')?.value) || 0;
 
-  const itemKRW = cur==='KRW' ? pur : pur * rate;
+  const itemKRW = cur === 'KRW' ? pur : pur * rate;
   const taxBase = itemKRW + shipO;
-  const totalCost = taxBase + (taxBase * cus) + ((taxBase + (taxBase * cus)) * 0.1) + shipD;
-  const netProfit = price - totalCost - (price * fee);
-  
-  const fmt = n => `₩${Math.round(n).toLocaleString()}`;
+  const customs = taxBase * customsRate;
+  const vat = (taxBase + customs) * 0.1;
+  const unitCost = taxBase + customs + vat + shipD;
+  const unitFee = price * feeRate;
+  const unitProfit = price > 0 ? price - unitCost - unitFee : 0;
+  const marginRate = price > 0 ? (unitProfit / price * 100).toFixed(1) : 0;
+  const bepRoas = price > 0 && unitProfit < price ? (price / (price - unitCost) * 100).toFixed(0) : '-';
+
+  // 제품 등록 시 사용할 실질 원가 저장
+  window._lastCalcUnitCost = unitCost;
+
   const box = document.getElementById('margin-result');
-  if(!box) return;
-  if(!pur && !price) { box.innerHTML = '<div style="text-align:center; padding:30px; color:var(--text3);">값을 입력하세요.</div>'; return; }
-  
+  if (!box) return;
+
+  if (!pur && !price) {
+    box.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text3)">값을 입력하세요.</div>';
+    return;
+  }
+
   box.innerHTML = `
-    <div class="result-row"><span>물품대금</span><span>${fmt(itemKRW)}</span></div>
-    <div class="result-row"><span>관세/부가세</span><span style="color:var(--red)">+${fmt((taxBase*cus) + ((taxBase+(taxBase*cus))*0.1))}</span></div>
-    <div class="result-row"><span>배송비</span><span style="color:var(--red)">+${fmt(shipO+shipD)}</span></div>
-    <div class="result-row total"><span>실질 원가</span><span style="color:var(--accent)">${fmt(totalCost)}</span></div>
+    <div class="result-row"><span class="label">물품대금 (환산)</span><span class="val">${fmt(itemKRW)}</span></div>
+    <div class="result-row"><span class="label">해외 배송비</span><span class="val" style="color:var(--red)">+${fmt(shipO)}</span></div>
+    <div class="result-row"><span class="label">관세 (${(customsRate*100).toFixed(0)}%)</span><span class="val" style="color:var(--red)">+${fmt(customs)}</span></div>
+    <div class="result-row"><span class="label">부가세 (10%)</span><span class="val" style="color:var(--red)">+${fmt(vat)}</span></div>
+    <div class="result-row"><span class="label">국내 배송비</span><span class="val" style="color:var(--red)">+${fmt(shipD)}</span></div>
+    <div class="result-row total"><span class="label">📦 실질 원가</span><span class="val" style="color:var(--accent)">${fmt(unitCost)}</span></div>
     ${price ? `
-    <div style="margin-top:16px; border-top:1px solid var(--border); padding-top:16px;">
-      <div class="result-row"><span>수수료</span><span style="color:var(--red)">-${fmt(price*fee)}</span></div>
-      <div class="result-row total"><span>광고 전 순이익</span><span style="color:${netProfit>=0?'var(--green)':'var(--red)'}">${fmt(netProfit)}</span></div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="result-row"><span class="label">판매가</span><span class="val">${fmt(price)}</span></div>
+      <div class="result-row"><span class="label">쿠팡 수수료 (${(feeRate*100).toFixed(1)}%)</span><span class="val" style="color:var(--red)">-${fmt(unitFee)}</span></div>
+      <div class="result-row total"><span class="label">💰 광고 전 순이익</span><span class="val" style="color:${unitProfit>=0?'var(--green)':'var(--red)'}">${fmt(unitProfit)} (${marginRate}%)</span></div>
+      <div class="result-row"><span class="label">손익분기 ROAS</span><span class="val" style="color:var(--accent)">${bepRoas}%</span></div>
+    </div>` : ''}
+    ${qty ? `
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+      <div class="result-row"><span class="label">초기 사입 비용 (${qty}개)</span><span class="val">${fmt(unitCost * qty)}</span></div>
+      <div class="result-row"><span class="label">가리뷰 비용 (${reviewQty}개 × 6,500원)</span><span class="val">${fmt(reviewQty * 6500)}</span></div>
+      <div class="result-row total"><span class="label">🏦 초기 투자 총액</span><span class="val" style="color:var(--purple)">${fmt(unitCost * qty + reviewQty * 6500 + 200000)} <span style="font-size:11px;font-weight:400">(+상세페이지 20만)</span></span></div>
     </div>` : ''}
   `;
+
+  // 손익분기 요약
+  const bepEl = document.getElementById('bep-summary');
+  const bepContent = document.getElementById('bep-content');
+  if (price && unitCost && bepEl && bepContent) {
+    bepEl.style.display = 'block';
+    bepContent.innerHTML = `
+      <div style="line-height:1.8">
+        <div>원가율: <b>${(unitCost/price*100).toFixed(1)}%</b></div>
+        <div>손익분기 ROAS: <b style="color:var(--accent)">${bepRoas}%</b></div>
+        <div>광고비 투입 가능 한도 (단건): <b>${fmt(unitProfit > 0 ? unitProfit : 0)}</b></div>
+        <div style="margin-top:6px;font-size:12px;color:var(--text3)">ROAS ${bepRoas}% 이상일 때 광고가 흑자입니다</div>
+      </div>
+    `;
+  }
+
   updateRoas(document.getElementById('roas-slider').value, price);
 }
 
-function updateRoas(val, price=null) {
+function updateRoas(val, price = null) {
   document.getElementById('roas-val').textContent = val + '%';
-  const p = price !== null ? price : (parseFloat(document.getElementById('m-price').value)||0);
+  const p = price !== null ? price : (parseFloat(document.getElementById('m-price')?.value) || 0);
   const resultDiv = document.getElementById('roas-result');
-  if(p > 0) resultDiv.innerHTML = `1개당 사용 가능한 <b>최대 광고비는 <span style="color:var(--accent);">${Math.round(p / (val / 100)).toLocaleString()}원</span></b>`;
-  else resultDiv.innerHTML = `판매가를 먼저 입력해주세요.`;
+  if (p > 0) {
+    const maxAd = p / (val / 100);
+    resultDiv.innerHTML = `1개당 최대 광고비: <b style="color:var(--accent)">₩${Math.round(maxAd).toLocaleString()}</b><br>
+      <span style="font-size:12px;color:var(--text3)">→ 이 금액 이하로 광고비를 유지하면 ROAS ${val}% 달성</span>`;
+  } else {
+    resultDiv.textContent = '판매가를 먼저 입력해주세요.';
+  }
 }
 
-// ── INIT ──
+function saveCalcToProduct() {
+  const price = parseFloat(document.getElementById('m-price')?.value) || 0;
+  // 실질 원가 사용 (관세 + 부가세 + 배송비 포함)
+  const costKRW = window._lastCalcUnitCost || 0;
+  document.getElementById('mp-price').value = price;
+  document.getElementById('mp-cost').value = Math.round(costKRW);
+  document.getElementById('mp-status').value = 'registered';
+  state.editProdId = null;
+  document.getElementById('mp-title').textContent = '계산기 → 제품 등록';
+  document.getElementById('btn-del-prod').style.display = 'none';
+  openModal('modal-product');
+}
+
+// ══════════════════════════════════════════════
+// 물류 트래킹
+// ══════════════════════════════════════════════
+function openLogisticsModal() {
+  if (!state.products.length) { alert('[제품 통합 관리]에서 제품을 먼저 등록하세요.'); return navigate('products'); }
+  const sel = document.getElementById('l-product');
+  sel.innerHTML = state.products.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('l-bl').value = '';
+  document.getElementById('l-cost').value = '';
+  document.getElementById('l-status').value = '입항전';
+  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  document.getElementById('l-date').value = today;
+  openModal('modal-logistics');
+}
+
+function saveLogistics() {
+  const prodId = document.getElementById('l-product').value;
+  const dateStr = document.getElementById('l-date').value;
+  if (!prodId || !dateStr) return alert('제품과 날짜를 입력하세요.');
+  const p = state.products.find(x => x.id === prodId);
+  state.logistics.push({
+    id: Date.now().toString(), prodId, product: p.name,
+    bl: document.getElementById('l-bl').value,
+    cost: parseFloat(document.getElementById('l-cost').value) || 0,
+    status: document.getElementById('l-status').value,
+    date: dateStr,
+    checks: {}
+  });
+  saveState();
+  closeModal('modal-logistics');
+  renderLogistics();
+}
+
+function updateLogStatus(id, newStatus) {
+  const l = state.logistics.find(x => x.id === id);
+  if (l && l.status !== newStatus) {
+    l.status = newStatus;
+    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    l.date = today;
+    saveState();
+    renderLogistics();
+  }
+}
+
+function toggleLogCheck(logId, checkKey) {
+  const l = state.logistics.find(x => x.id === logId);
+  if (l) { l.checks[checkKey] = !l.checks[checkKey]; saveState(); renderLogistics(); }
+}
+
+function renderLogistics() {
+  const container = document.getElementById('logistics-cards-container');
+  if (!state.logistics.length) {
+    container.innerHTML = `<div style="text-align:center;padding:48px;border:2px dashed var(--border);border-radius:10px;color:var(--text3)">
+      <div style="font-size:32px;margin-bottom:10px">🚢</div>
+      <div style="font-weight:600;margin-bottom:4px">진행 중인 화물이 없습니다</div>
+    </div>`;
+    return;
+  }
+  const today = new Date();
+  container.innerHTML = state.logistics.map(l => {
+    const curIdx = LOGISTICS_STAGES.indexOf(l.status);
+    const days = Math.max(0, Math.floor((today - new Date(l.date)) / 86400000));
+    const stepsHtml = LOGISTICS_STAGES.map((st, i) => {
+      const cls = i < curIdx ? 'done' : i === curIdx ? 'active' : '';
+      const dot = i < curIdx ? '✓' : i+1;
+      return `<div class="step-item ${cls}"><div class="step-dot">${dot}</div><div class="step-label">${st}</div></div>`;
+    }).join('');
+    const checksHtml = LOGISTICS_CHECKS.map(c => {
+      const isChecked = l.checks[c.key];
+      const isReachable = curIdx >= c.stageIdx;
+      return `<div class="check-item ${isChecked?'checked':''} ${!isReachable?'disabled':''}"
+        onclick="${isReachable?`toggleLogCheck('${l.id}','${c.key}')`:''}"
+        style="margin-bottom:6px">
+        <div class="check-box">${isChecked?'✓':''}</div>
+        <span style="flex:1">${c.label}</span>
+        <span class="badge badge-gray" style="font-size:10px">${LOGISTICS_STAGES[c.stageIdx]}</span>
+      </div>`;
+    }).join('');
+
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div style="font-size:17px;font-weight:700;margin-bottom:4px">${l.product}</div>
+          <div style="font-size:13px;color:var(--text2)">BL: <span style="color:var(--accent)">${l.bl||'미등록'}</span>${l.cost ? ` · 수입비용 ${fmt(l.cost)}` : ''}</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select class="form-select" style="width:auto;padding:6px 10px;font-size:13px;color:var(--accent);background:var(--accent-light);border:none"
+            onchange="updateLogStatus('${l.id}', this.value)">
+            ${LOGISTICS_STAGES.map(s => `<option value="${s}" ${l.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <span style="font-size:12px;color:${days>=4?'var(--red)':'var(--text3)'}">해당 단계 ${days}일째</span>
+          <button class="btn btn-danger btn-xs" onclick="state.logistics=state.logistics.filter(x=>x.id!=='${l.id}');saveState();renderLogistics()">삭제</button>
+        </div>
+      </div>
+      <div class="step-progress">${stepsHtml}</div>
+      <div style="margin-top:18px;padding-top:16px;border-top:1px dashed var(--border)">
+        <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:10px">단계별 필수 체크리스트</div>
+        ${checksHtml}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// 엑셀 백업
+// ══════════════════════════════════════════════
+function exportExcel() {
+  const wb = XLSX.utils.book_new();
+
+  // 제품 목록
+  const prodData = state.products.map(p => ({
+    제품명: p.name, 판매가: p.price, 원가: p.cost, 수수료율: p.commission, 상태: p.status, URL: p.url||''
+  }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(prodData), '제품목록');
+
+  // 전체 광고 데이터
+  const adRows = [];
+  state.products.forEach(p => {
+    Object.entries(state.adData[p.id] || {}).forEach(([dk, dd]) => {
+      const units = dd.units||0;
+      const rev = dd.revenue||0;
+      const ad = dd.adCost||0;
+      const cogs = units * p.cost;
+      const comm = rev * (p.commission||10.8)/100;
+      const profit = rev - ad - cogs - comm;
+      adRows.push({ 제품명:p.name, 날짜:dk, 판매금액:rev, 판매수량:units, 광고비:ad, 노출수:dd.impressions||0, 클릭수:dd.clicks||0, 원가합계:Math.round(cogs), 수수료:Math.round(comm), 순이익:Math.round(profit) });
+    });
+  });
+  adRows.sort((a,b) => a.날짜.localeCompare(b.날짜));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(adRows), '광고손익내역');
+
+  // 물류
+  const logData = state.logistics.map(l => ({ 제품명:l.product, BL번호:l.bl||'', 현재상태:l.status, 상태변경일:l.date, 수입비용:l.cost||0 }));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(logData), '물류현황');
+
+  XLSX.writeFile(wb, `SellerPro_백업_${new Date().toISOString().split('T')[0]}.xlsx`);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+});
+
 fetchRealExchangeRates();
 renderSidebar();
 renderDashboard();
+updateDashFilter();
 </script>
 </body>
 </html>
